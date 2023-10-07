@@ -1,10 +1,11 @@
 package ru.practicum.stats.server.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import ru.practicum.stats.server.model.Hit;
+import ru.practicum.stats.server.entity.ViewStats;
 
-@Repository
-public interface HitRepository extends JpaRepository<Hit, Long> {
+import java.time.LocalDateTime;
+import java.util.List;
 
+public interface HitRepository {
+
+    List<ViewStats> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique);
 }
