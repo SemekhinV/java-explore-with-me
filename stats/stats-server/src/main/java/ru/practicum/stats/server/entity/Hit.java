@@ -16,7 +16,7 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "Hit")
+@Table(name = "Hits")
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class Hit {
 
