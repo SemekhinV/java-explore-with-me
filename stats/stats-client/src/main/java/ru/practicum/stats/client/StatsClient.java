@@ -20,6 +20,7 @@ public class StatsClient {
     private final WebClient webClient;
 
     public StatsClient(@Value("${stats-server.url}") String serverUrl) {
+
         webClient = WebClient.builder()
                 .baseUrl(serverUrl)
                 .defaultHeader(CONTENT_TYPE, APPLICATION_JSON_VALUE)

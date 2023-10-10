@@ -2,9 +2,10 @@ package ru.practicum.stats.server.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.stats.dto.HitDto;
 import ru.practicum.stats.dto.ViewStatsDto;
-import ru.practicum.stats.server.entity.ViewStats;
+import ru.practicum.stats.server.entity.Hit;
 import ru.practicum.stats.server.mapper.HitMapper;
 import ru.practicum.stats.server.mapper.ViewStatsMapper;
 import ru.practicum.stats.server.repository.StatsRepository;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class StatsServiceImpl implements StatsService {
 
     private final StatsRepository repository;
@@ -24,20 +26,24 @@ public class StatsServiceImpl implements StatsService {
     private final HitMapper hitMapper;
 
     @Override
-    public HitDto saveHit(HitDto hitDto) {
+    @Transactional
+    public void saveHit(HitDto hitDto) {
 
-        return hitMapper.toDto(repository.save(hitMapper.toEntity(hitDto)));
+        String[] uri = hitDto.getUri().split("/");
+
+        hitDto.setUri("/" + uri[1]);
+
+        Hit response = repository.save(hitMapper.mapToEntity(hitDto));
+
+        System.out.println(response);
     }
 
     @Override
     public List<ViewStatsDto> getHits(LocalDateTime start, LocalDateTime end, List<String> uri, boolean unique) {
 
-        List<ViewStats> stats;
-
-        stats = unique ? repository.getStats(start, end, uri) : repository.getUniqueStats(start, end, uri);
-
-        return stats.stream()
-                .map(viewMapper::toDto)
+        return repository.getStats(start, end, uri, unique)
+                .stream()
+                .map(viewMapper::mapToDto)
                 .collect(Collectors.toList());
     }
 }
