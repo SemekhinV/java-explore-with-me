@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.stats.dto.HitDto;
 import ru.practicum.stats.dto.ViewStatsDto;
-import ru.practicum.stats.server.entity.Hit;
 import ru.practicum.stats.server.mapper.HitMapper;
 import ru.practicum.stats.server.mapper.ViewStatsMapper;
 import ru.practicum.stats.server.repository.StatsRepository;
@@ -33,13 +32,12 @@ public class StatsServiceImpl implements StatsService {
 
         hitDto.setUri("/" + uri[1]);
 
-        Hit response = repository.save(hitMapper.mapToEntity(hitDto));
-
-        System.out.println(response);
+        repository.save(hitMapper.mapToEntity(hitDto));
     }
 
     @Override
     public List<ViewStatsDto> getHits(LocalDateTime start, LocalDateTime end, List<String> uri, boolean unique) {
+
 
         return repository.getStats(start, end, uri, unique)
                 .stream()
