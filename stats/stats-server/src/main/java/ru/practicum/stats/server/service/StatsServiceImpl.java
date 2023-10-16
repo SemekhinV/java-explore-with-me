@@ -28,16 +28,11 @@ public class StatsServiceImpl implements StatsService {
     @Transactional
     public void saveHit(HitDto hitDto) {
 
-        String[] uri = hitDto.getUri().split("/");
-
-        hitDto.setUri("/" + uri[1]);
-
         repository.save(hitMapper.mapToEntity(hitDto));
     }
 
     @Override
     public List<ViewStatsDto> getHits(LocalDateTime start, LocalDateTime end, List<String> uri, boolean unique) {
-
 
         return repository.getStats(start, end, uri, unique)
                 .stream()
