@@ -15,13 +15,11 @@ services:
   stats-db:
     image: postgres:14-alpine
     ports:
-      - "5432:5432"
+      - "9091:5432"
     environment:
       - POSTGRES_DB=stats
       - POSTGRES_USER=stats
       - POSTGRES_PASSWORD=stats
-    volumes:
-      - ./db/create_db.sql:/docker-entrypoint-initdb.d/create-db.sql
 
   ewm-service:
     build: ./ewm
@@ -31,16 +29,16 @@ services:
     depends_on:
       - ewm-db
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=ewm
       - SPRING_DATASOURCE_URL=jdbc:postgresql://ewm-db:5432/ewm
       - STATS_SERVER_URL=http://stats-server:9090
 
   ewm-db:
     image: postgres:14-alpine
     ports:
-      - "6543:5432"
+      - "8081:5432"
     environment:
       - POSTGRES_DB=ewm
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=ewm
+      - POSTGRES_PASSWORD=ewm
