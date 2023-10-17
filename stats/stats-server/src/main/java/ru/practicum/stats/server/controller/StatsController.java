@@ -3,6 +3,7 @@ package ru.practicum.stats.server.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.stats.dto.GetStatsDto;
 import ru.practicum.stats.dto.HitDto;
 import ru.practicum.stats.dto.ViewStatsDto;
 import ru.practicum.stats.server.service.StatsService;
@@ -29,7 +30,7 @@ public class StatsController {
                                        @RequestParam LocalDateTime end,
                                        @RequestParam(defaultValue = "false") boolean unique,
                                        @RequestParam(required = false) List<String> uris) {
-        return service.getHits(start, end, uris, unique);
-    }
 
+        return service.getHits(new GetStatsDto(start, end, unique, uris));
+    }
 }

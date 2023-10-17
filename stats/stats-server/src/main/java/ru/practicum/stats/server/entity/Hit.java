@@ -11,9 +11,9 @@ import java.util.Objects;
 
 @Getter
 @Setter
-@ToString
 @Entity
 @Builder
+@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "Hits")
