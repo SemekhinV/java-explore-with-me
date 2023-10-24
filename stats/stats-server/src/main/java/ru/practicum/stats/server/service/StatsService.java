@@ -1,8 +1,8 @@
 package ru.practicum.stats.server.service;
 
-import ru.practicum.stats.dto.GetStatsDto;
 import ru.practicum.stats.dto.HitDto;
 import ru.practicum.stats.dto.ViewStatsDto;
+import ru.practicum.stats.server.dto.GetStatsDto;
 
 import java.util.List;
 
