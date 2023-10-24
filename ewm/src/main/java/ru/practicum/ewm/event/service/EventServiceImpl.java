@@ -80,7 +80,7 @@ public class EventServiceImpl implements EventService {
     @Override
     public EventDto get(Long id, HttpServletRequest request) {
 
-        var event = repository.findByIdAndPublishedOnIsNotNull(id).orElseThrow(
+        Event event = repository.findByIdAndPublishedOnIsNotNull(id).orElseThrow(
                 () -> new EntityExistException("Event with id=" + id + " does`t exist"));
 
         addView(event);
@@ -172,9 +172,7 @@ public class EventServiceImpl implements EventService {
             if (StateAction.SEND_TO_REVIEW.equals(dto.getStateAction())) {
 
                 event.setState(EventState.PENDING);
-            }
-
-            else {
+            } else {
                 event.setState(EventState.CANCELED);
             }
         }
@@ -279,9 +277,7 @@ public class EventServiceImpl implements EventService {
 
         if (stats.size() == 1) {
             event.setViews(stats.get(0).getHits());
-        }
-
-        else {
+        } else {
             event.setViews(0L);
         }
     }
@@ -306,9 +302,9 @@ public class EventServiceImpl implements EventService {
 
     private void sendStatsForEvents(List<Event> events, String remoteAddress, LocalDateTime now) {
 
-        for (var event : events) {
+        for (Event event : events) {
 
-            var requestDto = HitDto.builder()
+            HitDto requestDto = HitDto.builder()
                     .ip(remoteAddress)
                     .app("main")
                     .uri("/events/" + event.getId())

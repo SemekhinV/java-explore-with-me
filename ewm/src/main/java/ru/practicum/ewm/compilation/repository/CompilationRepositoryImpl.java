@@ -33,9 +33,7 @@ public class CompilationRepositoryImpl implements CompilationRepository {
             if (pinned) {
 
                 isPinned = builder.isTrue(root.get("pinned"));
-            }
-
-            else {
+            } else {
 
                 isPinned = builder.isFalse(root.get("pinned"));
             }

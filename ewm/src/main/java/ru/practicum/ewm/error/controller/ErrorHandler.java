@@ -43,7 +43,7 @@ public class ErrorHandler {
     @ResponseBody
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Error eventPublishException (final EventPublishException e) {
+    public Error eventPublishException(final EventPublishException e) {
 
         return Error.builder()
                 .status("CONFLICT")
@@ -56,7 +56,7 @@ public class ErrorHandler {
     @ResponseBody
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Error eventStateException (final EventStateException e) {
+    public Error eventStateException(final EventStateException e) {
 
         return Error.builder()
                 .status("CONFLICT")
@@ -69,7 +69,7 @@ public class ErrorHandler {
     @ResponseBody
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Error eventTimeException (final EventTimeException e) {
+    public Error eventTimeException(final EventTimeException e) {
 
         return Error.builder()
                 .status("CONFLICT")
@@ -82,7 +82,7 @@ public class ErrorHandler {
     @ResponseBody
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Error participantLimitException (final ParticipantLimitException e) {
+    public Error participantLimitException(final ParticipantLimitException e) {
 
         return Error.builder()
                 .status("CONFLICT")
@@ -95,7 +95,7 @@ public class ErrorHandler {
     @ResponseBody
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Error requestStateException (final RequestStateException e) {
+    public Error requestStateException(final RequestStateException e) {
 
         return Error.builder()
                 .status("CONFLICT")
@@ -108,7 +108,7 @@ public class ErrorHandler {
     @ResponseBody
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Error userAccessException (final UserAccessException e) {
+    public Error userAccessException(final UserAccessException e) {
 
         return Error.builder()
                 .status("CONFLICT")

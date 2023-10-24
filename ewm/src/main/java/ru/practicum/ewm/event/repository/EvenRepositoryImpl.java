@@ -75,7 +75,7 @@ public class EvenRepositoryImpl implements EventRepository {
 
         query.select(root).where(criteria);
 
-        var events = entityManager.createQuery(query)
+        List<Event> events = entityManager.createQuery(query)
                 .setFirstResult(dto.getFrom())
                 .setMaxResults(dto.getSize())
                 .getResultList();
@@ -163,9 +163,7 @@ public class EvenRepositoryImpl implements EventRepository {
                 events = events.stream()
                         .sorted(Comparator.comparing(Event::getEventDate))
                         .collect(Collectors.toList());
-            }
-
-            else {
+            } else {
 
                 events = events.stream()
                         .sorted(Comparator.comparing(Event::getViews))

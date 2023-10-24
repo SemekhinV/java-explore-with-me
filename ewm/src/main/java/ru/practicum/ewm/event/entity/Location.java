@@ -30,7 +30,8 @@ public class Location {
         if (this == o) return true;
         if (!(o instanceof Location)) return false;
         Location location = (Location) o;
-        return this.getId() != null && Objects.equals(this.getId(), location.getId());    }
+        return this.getId() != null && Objects.equals(this.getId(), location.getId());
+    }
 
     @Override
     public int hashCode() {
