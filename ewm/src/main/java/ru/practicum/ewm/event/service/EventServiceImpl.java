@@ -2,6 +2,7 @@ package ru.practicum.ewm.event.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,6 +43,7 @@ public class EventServiceImpl implements EventService {
 
     private final EventMapper mapper;
 
+    @Autowired
     private final StatsClient client;
 
     @Override
