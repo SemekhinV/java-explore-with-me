@@ -28,6 +28,7 @@ public class CompilationServiceImpl implements CompilationService {
     private final EventJpaRepository eventRepository;
 
     @Override
+    @Transactional
     public CompilationDto save(CompilationRequestDto savedCompilationDto) {
 
         Optional<Event> events = eventRepository.findAllByIdIn(savedCompilationDto.getEvents());
@@ -59,6 +60,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public CompilationDto update(Long compId, CompilationUpdateDto dto) {
 
         Compilation compilation = repository.findById(compId).orElseThrow(
@@ -82,6 +84,7 @@ public class CompilationServiceImpl implements CompilationService {
     }
 
     @Override
+    @Transactional
     public void delete(Long compId) {
 
         repository.deleteById(compId);

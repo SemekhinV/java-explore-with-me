@@ -1,7 +1,6 @@
 package ru.practicum.ewm.user.controller;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +21,6 @@ public class UserController {
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserRequestDto save(@Valid @RequestBody UserRequestDto user) {
-
-        System.out.println("DDDDDDDDs");
 
         return service.save(user);
     }

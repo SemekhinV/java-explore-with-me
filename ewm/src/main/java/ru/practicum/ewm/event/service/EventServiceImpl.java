@@ -2,7 +2,6 @@ package ru.practicum.ewm.event.service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,10 +42,10 @@ public class EventServiceImpl implements EventService {
 
     private final EventMapper mapper;
 
-    @Autowired
     private final StatsClient client;
 
     @Override
+    @Transactional
     public EventDto save(Long userId, EventRequestDto dto) {
 
         Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(
@@ -136,6 +135,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventDto update(Long userId, Long eventId, EventUpdateDto dto) {
 
         Event event = repository.findByIdAndInitiatorId(eventId, userId).orElseThrow(
@@ -195,6 +195,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional
     public EventDto update(Long eventId, AdminEventUpdateDto dto) {
 
         Event event = repository.findById(eventId).orElseThrow(
@@ -299,8 +300,6 @@ public class EventServiceImpl implements EventService {
 
         sendStatsForEvents(events, request.getRemoteAddr(), now);
     }
-
-
 
     private void sendStatsForEvents(List<Event> events, String remoteAddress, LocalDateTime now) {
 
