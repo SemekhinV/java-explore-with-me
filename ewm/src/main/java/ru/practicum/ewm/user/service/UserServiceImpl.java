@@ -36,9 +36,13 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserRequestDto> get(List<Long> idIn, int from, int size) {
 
-        return idIn.isEmpty() ?
-                mapper.toDtoList(repository.findAll(PageRequest.of(from / size, size)).toList()) :
-                mapper.toDtoList(repository.findAllById(idIn));
+        if (idIn != null && !idIn.isEmpty()) {
+
+            return mapper.toDtoList(repository.findAll(PageRequest.of(from / size, size)).toList());
+        } else {
+
+            return mapper.toDtoList(repository.findAllById(idIn));
+        }
     }
 
     @Override

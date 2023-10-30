@@ -13,9 +13,9 @@ import java.util.Objects;
 @Getter
 @Setter
 @ToString
-@Builder(toBuilder = true)
 @NoArgsConstructor
 @Table(name = "events")
+@Builder(toBuilder = true)
 public class Event {
 
     @Id
@@ -118,3 +118,5 @@ public class Event {
         return getClass().hashCode();
     }
 }
+
+

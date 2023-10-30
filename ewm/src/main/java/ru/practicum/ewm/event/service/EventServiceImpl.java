@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.category.entity.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
 import ru.practicum.ewm.error.exception.EntityExistException;
+import ru.practicum.ewm.error.exception.EventPublishException;
 import ru.practicum.ewm.error.exception.EventStateException;
 import ru.practicum.ewm.error.exception.EventTimeException;
 import ru.practicum.ewm.event.dto.*;
@@ -142,32 +143,64 @@ public class EventServiceImpl implements EventService {
                 () -> new EntityExistException("Event with id=" + eventId + " does`t exist"));
 
         if (dto == null) {
+
             return  mapper.toDto(event);
         }
 
-        if (event.getPublishedOn() != null) {
-            throw new EventStateException("Event has been published.");
+        if (dto.getAnnotation() != null) {
+
+            event.setAnnotation(dto.getAnnotation());
         }
 
-        Category category = dto.getCategory() != null ?
-                categoryRepository.findById(dto.getCategory()).orElseThrow(
-                        () -> new EntityExistException("This category does`t exist."))
-                : null;
+        if (dto.getCategory() != null) {
 
-        event.toBuilder()
-                .annotation(dto.getAnnotation() != null ? dto.getAnnotation() : event.getAnnotation())
-                .category(category != null ? category : event.getCategory())
-                .description(dto.getDescription() != null ? dto.getDescription() : event.getDescription())
-                .location(dto.getLocation() != null ? dto.getLocation() : event.getLocation())
-                .paid(dto.getPaid() != null ? dto.getPaid() : event.getPaid())
-                .participantLimit(dto.getParticipantLimit() != null ?
-                        dto.getParticipantLimit()
-                        : event.getParticipantLimit())
-                .requestModeration(dto.getRequestModeration() != null ?
-                        dto.getRequestModeration()
-                        : event.getRequestModeration())
-                .title(dto.getTitle() != null ? dto.getTitle() : event.getTitle())
-                .build();
+            Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(
+                    () -> new EntityExistException("This category does not exist"));
+
+            event.setCategory(category);
+        }
+
+        if (dto.getDescription() != null) {
+
+            event.setDescription(dto.getDescription());
+        }
+
+        if (dto.getEventDate() != null) {
+
+            LocalDateTime eventTime = dto.getEventDate();
+
+            if (eventTime.isBefore(LocalDateTime.now().plusHours(2))) {
+
+                throw new EventTimeException("Wrong time");
+            }
+
+            event.setEventDate(dto.getEventDate());
+        }
+
+        if (dto.getLocation() != null) {
+
+            event.setLocation(dto.getLocation());
+        }
+
+        if (dto.getPaid() != null) {
+
+            event.setPaid(dto.getPaid());
+        }
+
+        if (dto.getParticipantLimit() != null) {
+
+            event.setParticipantLimit(dto.getParticipantLimit());
+        }
+
+        if (dto.getRequestModeration() != null) {
+
+            event.setRequestModeration(dto.getRequestModeration());
+        }
+
+        if (dto.getTitle() != null) {
+
+            event.setTitle(dto.getTitle());
+        }
 
         if (dto.getStateAction() != null) {
 
@@ -175,20 +208,9 @@ public class EventServiceImpl implements EventService {
 
                 event.setState(EventState.PENDING);
             } else {
+
                 event.setState(EventState.CANCELED);
             }
-        }
-
-        if (dto.getEventDate() != null) {
-
-            LocalDateTime eventTime = dto.getEventDate();
-
-            if (eventTime.isBefore(LocalDateTime.now()) || eventTime.isBefore(event.getPublishedOn().plusHours(1))) {
-
-                throw new EventStateException("Wrong event publish time");
-            }
-
-            event.setEventDate(dto.getEventDate());
         }
 
         return mapper.toDto(repository.save(event));
@@ -202,28 +224,52 @@ public class EventServiceImpl implements EventService {
                 () -> new EntityExistException("Event with id=" + eventId + " does not exist"));
 
         if (dto == null) {
+
             return mapper.toDto(event);
         }
 
-        Category category = dto.getCategory() != null ?
-                categoryRepository.findById(dto.getCategory()).orElseThrow(
-                        () -> new EntityExistException("This category does`t exist."))
-                : null;
+        if (dto.getAnnotation() != null) {
 
-        event.toBuilder()
-                .annotation(dto.getAnnotation() != null ? dto.getAnnotation() : event.getAnnotation())
-                .category(category != null ? category : event.getCategory())
-                .description(dto.getDescription() != null ? dto.getDescription() : event.getDescription())
-                .location(dto.getLocation() != null ? dto.getLocation() : event.getLocation())
-                .paid(dto.getPaid() != null ? dto.getPaid() : event.getPaid())
-                .participantLimit(dto.getParticipantLimit() != null ?
-                        dto.getParticipantLimit()
-                        : event.getParticipantLimit())
-                .requestModeration(dto.getRequestModeration() != null ?
-                        dto.getRequestModeration()
-                        : event.getRequestModeration())
-                .title(dto.getTitle() != null ? dto.getTitle() : event.getTitle())
-                .build();
+            event.setAnnotation(dto.getAnnotation());
+        }
+
+        if (dto.getCategory() != null) {
+
+            Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(
+                    () -> new EntityExistException("This category does not exist"));
+
+            event.setCategory(category);
+        }
+
+        if (dto.getDescription() != null) {
+
+            event.setDescription(dto.getDescription());
+        }
+
+        if (dto.getLocation() != null) {
+
+            event.setLocation(dto.getLocation());
+        }
+
+        if (dto.getPaid() != null) {
+
+            event.setPaid(dto.getPaid());
+        }
+
+        if (dto.getParticipantLimit() != null) {
+
+            event.setParticipantLimit(dto.getParticipantLimit());
+        }
+
+        if (dto.getRequestModeration() != null) {
+
+            event.setRequestModeration(dto.getRequestModeration());
+        }
+
+        if (dto.getTitle() != null) {
+
+            event.setTitle(dto.getTitle());
+        }
 
         if (dto.getStateAction() != null) {
 
@@ -231,7 +277,7 @@ public class EventServiceImpl implements EventService {
 
                 if (event.getPublishedOn() != null) {
 
-                    throw new EventStateException("Event has been published");
+                    throw new EventPublishException("Event has been published");
                 }
 
                 if (EventState.CANCELED.equals(event.getState())) {
@@ -245,7 +291,8 @@ public class EventServiceImpl implements EventService {
             } else if (AdminStateAction.REJECT_EVENT.equals(dto.getStateAction())) {
 
                 if (event.getPublishedOn() != null) {
-                    throw new EventStateException("Reject event has been published");
+
+                    throw new EventPublishException("Event has been published");
                 }
 
                 event.setState(EventState.CANCELED);
@@ -254,12 +301,11 @@ public class EventServiceImpl implements EventService {
 
         if (dto.getEventDate() != null) {
 
-            LocalDateTime eventTime = dto.getEventDate();
+            var eventTime = dto.getEventDate();
 
-            if (eventTime.isBefore(LocalDateTime.now())
-                    || eventTime.isBefore(event.getPublishedOn().plusHours(2))) {
+            if (eventTime.isBefore(LocalDateTime.now()) || eventTime.isBefore(event.getPublishedOn().plusHours(1))) {
 
-                throw new EventStateException("Wrong event publish time");
+                throw new EventTimeException("Wrong time");
             }
 
             event.setEventDate(dto.getEventDate());
