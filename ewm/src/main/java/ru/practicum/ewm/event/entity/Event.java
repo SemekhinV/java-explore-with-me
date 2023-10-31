@@ -26,7 +26,7 @@ public class Event {
     private String annotation;
 
     @Column(name = "confirmed_requests")
-    private Long confirmedRequests;
+    private long confirmedRequests;
 
     @Column(name = "created_on")
     private LocalDateTime createdOn;
@@ -53,7 +53,7 @@ public class Event {
     private Boolean paid;
 
     @Column(name = "participant_limit")
-    private Long participantLimit;
+    private long participantLimit;
 
     @Column(name = "published_on")
     private LocalDateTime publishedOn;

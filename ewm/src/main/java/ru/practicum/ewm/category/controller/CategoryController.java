@@ -18,7 +18,7 @@ public class CategoryController {
     private List<CategoryResponseDto> get(@RequestParam(defaultValue = "20", required = false) int size,
                                           @RequestParam(defaultValue = "0", required = false) int from) {
 
-        return service.get(size, from);
+        return service.get(from, size);
     }
 
     @GetMapping("/{catId}")

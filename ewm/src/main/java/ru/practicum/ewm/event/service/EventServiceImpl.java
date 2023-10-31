@@ -53,11 +53,17 @@ public class EventServiceImpl implements EventService {
     public EventDto save(Long userId, EventRequestDto dto) {
 
         Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(
-                () -> new EntityExistException("Category does`t exist."));
+                () -> {
+                    log.error("Category does`t exist.");
+                    throw new EntityExistException("Category does`t exist.");
+                });
 
         LocalDateTime date = dto.getEventDate();
 
         if (date.isBefore(LocalDateTime.now().plusHours(2))) {
+
+            log.error("Event date should be in future.");
+
             throw new EventTimeException("Event date should be in future.");
         }
 
@@ -66,7 +72,10 @@ public class EventServiceImpl implements EventService {
         event.setCategory(category);
 
         User user = userRepository.findById(userId).orElseThrow(
-                () -> new EntityExistException("User with id=" + userId + " does`t exist."));
+                () -> {
+                    log.error("User with id=" + userId + " does`t exist.");
+                    throw new EntityExistException("User with id=" + userId + " does`t exist.");
+                });
 
         event.setInitiator(user);
 
@@ -86,7 +95,10 @@ public class EventServiceImpl implements EventService {
     public EventDto get(Long id, HttpServletRequest request) {
 
         Event event = repository.findByIdAndPublishedOnIsNotNull(id).orElseThrow(
-                () -> new EntityExistException("Event with id=" + id + " does`t exist"));
+                () -> {
+                    log.error("Event with id=" + id + " does`t exist");
+                    throw new EntityExistException("Event with id=" + id + " does`t exist");
+                });
 
         addView(event);
 
@@ -99,7 +111,10 @@ public class EventServiceImpl implements EventService {
     public EventDto getByUser(Long userId, Long eventId) {
 
         return mapper.toDto(repository.findByIdAndInitiatorId(eventId, userId)
-                .orElseThrow(() -> new EntityExistException("Event with id=" + eventId + " does`t exist")));
+                .orElseThrow(() -> {
+                    log.error("Event with id=" + eventId + " does`t exist");
+                    throw new EntityExistException("Event with id=" + eventId + " does`t exist");
+                }));
     }
 
     @Override
@@ -139,7 +154,10 @@ public class EventServiceImpl implements EventService {
     public EventDto update(Long userId, Long eventId, EventUpdateDto dto) {
 
         Event event = repository.findByIdAndInitiatorId(eventId, userId).orElseThrow(
-                () -> new EntityExistException("Event with id=" + eventId + " does`t exist"));
+                () -> {
+                    log.error("Event with id=" + eventId + " does`t exist");
+                    throw new EntityExistException("Event with id=" + eventId + " does`t exist");
+                });
 
         if (dto == null) {
 
@@ -154,7 +172,10 @@ public class EventServiceImpl implements EventService {
         if (dto.getCategory() != null) {
 
             Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(
-                    () -> new EntityExistException("This category does not exist"));
+                    () -> {
+                        log.error("This category does not exist");
+                        throw new EntityExistException("This category does not exist");
+                    });
 
             event.setCategory(category);
         }
@@ -169,6 +190,8 @@ public class EventServiceImpl implements EventService {
             LocalDateTime eventTime = dto.getEventDate();
 
             if (eventTime.isBefore(LocalDateTime.now().plusHours(2))) {
+
+                log.error("Wrong time");
 
                 throw new EventTimeException("Wrong time");
             }
@@ -220,7 +243,10 @@ public class EventServiceImpl implements EventService {
     public EventDto update(Long eventId, AdminEventUpdateDto dto) {
 
         Event event = repository.findById(eventId).orElseThrow(
-                () -> new EntityExistException("Event with id=" + eventId + " does not exist"));
+                () -> {
+                    log.error("Event with id=" + eventId + " does not exist");
+                    throw new EntityExistException("Event with id=" + eventId + " does not exist");
+                });
 
         if (dto == null) {
 
@@ -235,7 +261,10 @@ public class EventServiceImpl implements EventService {
         if (dto.getCategory() != null) {
 
             Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(
-                    () -> new EntityExistException("This category does not exist"));
+                    () -> {
+                        log.error("This category does not exist");
+                        throw new EntityExistException("This category does not exist");
+                    });
 
             event.setCategory(category);
         }
@@ -276,10 +305,14 @@ public class EventServiceImpl implements EventService {
 
                 if (event.getPublishedOn() != null) {
 
+                    log.error("Event has been published");
+
                     throw new EventPublishException("Event has been published");
                 }
 
                 if (EventState.CANCELED.equals(event.getState())) {
+
+                    log.error("Event has been canceled");
 
                     throw new EventStateException("Event has been canceled");
                 }
@@ -290,6 +323,8 @@ public class EventServiceImpl implements EventService {
             } else if (AdminStateAction.REJECT_EVENT.equals(dto.getStateAction())) {
 
                 if (event.getPublishedOn() != null) {
+
+                    log.error("Event has been published");
 
                     throw new EventPublishException("Event has been published");
                 }
@@ -303,6 +338,8 @@ public class EventServiceImpl implements EventService {
             var eventTime = dto.getEventDate();
 
             if (eventTime.isBefore(LocalDateTime.now()) || eventTime.isBefore(event.getPublishedOn().plusHours(1))) {
+
+                log.error("Wrong time");
 
                 throw new EventTimeException("Wrong time");
             }

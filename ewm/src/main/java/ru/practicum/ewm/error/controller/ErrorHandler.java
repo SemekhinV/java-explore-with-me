@@ -43,6 +43,32 @@ public class ErrorHandler {
     @ResponseBody
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
+    public Error categoryAlreadyExist(final CategoryExistsException e) {
+
+        return Error.builder()
+                .status("CONFLICT")
+                .reason("Incorrect request")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
+    @ResponseBody
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Error categoryDataException(final CategoryDataException e) {
+
+        return Error.builder()
+                .status("CONFLICT")
+                .reason("Incorrect request")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
+    @ResponseBody
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
     public Error eventPublishException(final EventPublishException e) {
 
         return Error.builder()
@@ -109,6 +135,32 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public Error userAccessException(final UserAccessException e) {
+
+        return Error.builder()
+                .status("CONFLICT")
+                .reason("Incorrect request")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
+    @ResponseBody
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Error userExistException(final UserExistException e) {
+
+        return Error.builder()
+                .status("CONFLICT")
+                .reason("Incorrect request")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
+    @ResponseBody
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Error requestExistException(final RequestExistException e) {
 
         return Error.builder()
                 .status("CONFLICT")

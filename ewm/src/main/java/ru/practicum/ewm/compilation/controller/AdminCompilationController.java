@@ -31,7 +31,7 @@ public class AdminCompilationController {
         return service.update(compId, dto);
     }
 
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/compilations/{compId}")
     public void delete(@PathVariable Long compId) {
 

@@ -1,6 +1,7 @@
 package ru.practicum.ewm.compilation.service;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.compilation.dto.CompilationDto;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)
@@ -48,7 +50,10 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto get(Long compId) {
 
         Compilation compilation = repository.findById(compId).orElseThrow(
-                () -> new EntityExistException("Compilation does not exist"));
+                () -> {
+                    log.error("Compilation does not exist");
+                    throw new EntityExistException("Compilation does not exist");
+                });
 
         return mapper.toDto(compilation);
     }
@@ -64,7 +69,10 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto update(Long compId, CompilationUpdateDto dto) {
 
         Compilation compilation = repository.findById(compId).orElseThrow(
-                () -> new EntityExistException("Compilation does not exist"));
+                () -> {
+                    log.error("Compilation does not exist");
+                    throw new EntityExistException("Compilation does not exist");
+                });
 
         List<Long> eventsIds = dto.getEvents();
 

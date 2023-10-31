@@ -33,7 +33,7 @@ public class AdminCategoryController {
         return service.update(catId, dto);
     }
 
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/categories/{catId}")
     public void delete(@PathVariable Long catId) {
 

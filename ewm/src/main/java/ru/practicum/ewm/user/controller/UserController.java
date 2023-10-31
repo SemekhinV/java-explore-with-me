@@ -26,7 +26,6 @@ public class UserController {
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.CREATED)
     public List<UserRequestDto> get(@RequestParam(required = false) List<Long> idIn,
                                     @RequestParam(defaultValue = "20") Integer size,
                                     @RequestParam(defaultValue = "0") Integer from) {
@@ -35,7 +34,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
 
         service.delete(id);
