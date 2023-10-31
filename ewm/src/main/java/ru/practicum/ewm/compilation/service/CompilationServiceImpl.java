@@ -10,6 +10,7 @@ import ru.practicum.ewm.compilation.dto.CompilationUpdateDto;
 import ru.practicum.ewm.compilation.entity.Compilation;
 import ru.practicum.ewm.compilation.mapper.CompilationMapper;
 import ru.practicum.ewm.compilation.repository.CompilationJpaRepository;
+import ru.practicum.ewm.compilation.repository.CompilationRepository;
 import ru.practicum.ewm.error.exception.EntityExistException;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.repository.EventJpaRepository;
@@ -25,6 +26,8 @@ import java.util.Set;
 public class CompilationServiceImpl implements CompilationService {
 
     private final CompilationJpaRepository repository;
+
+    private final CompilationRepository simpleCompRepository;
 
     private final CompilationMapper mapper;
     private final EventJpaRepository eventRepository;
@@ -61,7 +64,7 @@ public class CompilationServiceImpl implements CompilationService {
     @Override
     public List<CompilationDto> get(Boolean pinned, Integer from, Integer size) {
 
-        return mapper.toDtoList(repository.getByPinned(pinned, from, size));
+        return mapper.toDtoList(simpleCompRepository.getPinned(pinned, from, size));
     }
 
     @Override

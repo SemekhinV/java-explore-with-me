@@ -19,7 +19,7 @@ public class EventDto {
 
     private Long id;
 
-    @Size(max = 1000)
+    @Size(max = 2000)
     private String annotation;
 
     private CategoryResponseDto category;
@@ -29,7 +29,7 @@ public class EventDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private String createdOn;
 
-    @Size(max = 100)
+    @Size(max = 7000)
     private String description;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -50,7 +50,7 @@ public class EventDto {
 
     private EventState state;
 
-    @Size(max = 100)
+    @Size(max = 120)
     private String title;
 
     private Long views;

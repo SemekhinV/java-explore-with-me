@@ -1,6 +1,7 @@
 package ru.practicum.ewm.compilation.repository;
 
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 import ru.practicum.ewm.compilation.entity.Compilation;
 
 import javax.persistence.EntityManager;
@@ -10,13 +11,14 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.List;
 
+@Component
 @AllArgsConstructor
 public class CompilationRepositoryImpl implements CompilationRepository {
 
     private final EntityManager entityManager;
 
     @Override
-    public List<Compilation> getByPinned(Boolean pinned, Integer from, Integer size) {
+    public List<Compilation> getPinned(Boolean pinned, Integer from, Integer size) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 

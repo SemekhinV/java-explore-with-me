@@ -21,7 +21,7 @@ public class Compilation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title", length = 100)
+    @Column(name = "title", length = 140)
     private String title;
 
     @Column(name = "pinned")

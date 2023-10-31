@@ -15,7 +15,7 @@ public class CategoryController {
     private final CategoryService service;
 
     @GetMapping
-    private List<CategoryResponseDto> get(@RequestParam(defaultValue = "20", required = false) int size,
+    private List<CategoryResponseDto> get(@RequestParam(defaultValue = "10", required = false) int size,
                                           @RequestParam(defaultValue = "0", required = false) int from) {
 
         return service.get(from, size);

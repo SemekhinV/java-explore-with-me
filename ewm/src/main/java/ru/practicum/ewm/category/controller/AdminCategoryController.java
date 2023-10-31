@@ -25,7 +25,6 @@ public class AdminCategoryController {
         return service.save(dto);
     }
 
-    @ResponseStatus(HttpStatus.OK)
     @PatchMapping("/categories/{catId}")
     public CategoryResponseDto update(@Valid @RequestBody CategoryResponseDto dto,
                                       @PathVariable Long catId) {

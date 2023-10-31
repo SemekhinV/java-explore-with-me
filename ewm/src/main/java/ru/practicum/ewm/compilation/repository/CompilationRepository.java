@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface CompilationRepository {
 
-    List<Compilation> getByPinned(Boolean pinned, Integer from, Integer size);
+    List<Compilation> getPinned(Boolean pinned, Integer from, Integer size);
 }

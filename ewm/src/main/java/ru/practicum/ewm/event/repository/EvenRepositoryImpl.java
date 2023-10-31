@@ -26,15 +26,6 @@ public class EvenRepositoryImpl implements EventRepository {
 
     private final EntityManager entityManager;
 
-    /**
-     * Get method with parameters to get the list of events.
-     * Access level - USER
-     * The name of the method was chosen that way because otherwise an error with the Jpa repository occurred
-     *
-     * @param dto A special class for a get request with parameters for both user and administrator.
-     *
-     * @return List of events based on passed parameters
-     */
     @Override
     public List<Event> admin(AdminDtoWithParameters dto, LocalDateTime start, LocalDateTime end) {
 
@@ -45,7 +36,6 @@ public class EvenRepositoryImpl implements EventRepository {
         Root<Event> root = query.from(Event.class);
 
         Predicate criteria = builder.conjunction();
-
 
         if (dto.getRangeStart() != null) {
 
@@ -61,12 +51,12 @@ public class EvenRepositoryImpl implements EventRepository {
                     end));
         }
 
-        if (dto.getCategories() != null && dto.getCategories().size() > 0) {
+        if (dto.getCategories() != null && !dto.getCategories().isEmpty()) {
 
             criteria = builder.and(criteria, root.get("category").in(dto.getCategories()));
         }
 
-        if (dto.getUsers() != null && dto.getUsers().size() > 0) {
+        if (dto.getUsers() != null && !dto.getUsers().isEmpty()) {
 
             criteria = builder.and(criteria, root.get("initiator").in(dto.getUsers()));
         }
@@ -83,20 +73,14 @@ public class EvenRepositoryImpl implements EventRepository {
                 .setMaxResults(dto.getSize())
                 .getResultList();
 
-        if (events.size() == 0) return new ArrayList<>();
+        if (events.size() == 0) {
+
+            return new ArrayList<>();
+        }
 
         return events;
     }
 
-    /**
-     * Get method with parameters to get the list of events.
-     * Access level - ADMIN.
-     * The name of the method was chosen that way because otherwise an error with the Jpa repository occurred
-     *
-     * @param dto A special class for a get request with parameters for both user and administrator.
-     *
-     * @return List of events based on passed parameters
-     */
     @Override
     public List<Event> user(UserDtoWithParameters dto, LocalDateTime start, LocalDateTime end) {
 

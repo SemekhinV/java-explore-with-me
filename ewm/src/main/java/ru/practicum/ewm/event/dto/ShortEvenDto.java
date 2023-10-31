@@ -27,7 +27,7 @@ public class ShortEvenDto {
 
     private CategoryResponseDto category;
 
-    @Size(max = 1000)
+    @Size(max = 2000)
     private String annotation;
 
     private Boolean paid;

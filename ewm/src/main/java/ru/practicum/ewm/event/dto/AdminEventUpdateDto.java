@@ -17,12 +17,12 @@ import java.time.LocalDateTime;
 public class AdminEventUpdateDto {
 
 
-    @Size(min = 3, max = 1000)
+    @Size(min = 10, max = 2000)
     private String annotation;
 
     private Long category;
 
-    @Size(min = 20, max = 1000)
+    @Size(min = 20, max = 7000)
     private String description;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")

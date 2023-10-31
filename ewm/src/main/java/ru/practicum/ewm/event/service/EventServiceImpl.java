@@ -161,7 +161,12 @@ public class EventServiceImpl implements EventService {
 
         if (dto == null) {
 
-            return  mapper.toDto(event);
+            return mapper.toDto(event);
+        }
+
+        if (event.getPublishedOn() != null) {
+
+            throw new EventPublishException("Event has been published");
         }
 
         if (dto.getAnnotation() != null) {

@@ -18,12 +18,12 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @AllArgsConstructor
 public class EventUpdateDto {
 
-    @Size(min = 3, max = 1000)
+    @Size(min = 10, max = 2000)
     private String annotation;
 
     private Long category;
 
-    @Size(min = 20, max = 1000)
+    @Size(min = 20, max = 7000)
     private String description;
 
     @JsonFormat(shape = STRING, pattern = "yyyy-MM-dd HH:mm:ss")

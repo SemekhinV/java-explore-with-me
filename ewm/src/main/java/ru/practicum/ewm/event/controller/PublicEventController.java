@@ -24,7 +24,7 @@ public class PublicEventController {
     }
 
     @GetMapping
-    public List<EventDto> getByUser(@RequestParam(required = false, defaultValue = "20") Integer size,
+    public List<EventDto> getByUser(@RequestParam(required = false, defaultValue = "10") Integer size,
                                     @RequestParam(required = false, defaultValue = "0") Integer from,
                                     @RequestParam(defaultValue = "false") boolean onlyAvailable,
                                     @RequestParam(required = false) List<Long> categories,
