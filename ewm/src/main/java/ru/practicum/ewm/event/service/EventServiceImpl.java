@@ -18,6 +18,7 @@ import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.event.enums.StateAction;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.repository.EventJpaRepository;
+import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.user.entity.User;
 import ru.practicum.ewm.user.repository.UserRepository;
 import ru.practicum.stats.client.StatsClient;
@@ -36,6 +37,8 @@ import java.util.List;
 public class EventServiceImpl implements EventService {
 
     private final EventJpaRepository repository;
+
+    private final EventRepository getEventWithParameters;
 
     private final CategoryRepository categoryRepository;
 
@@ -100,35 +103,31 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventDto> getWithParametersByAdmin(GetWithParametersDto dto) {
+    public List<EventDto> getWithParametersByAdmin(AdminDtoWithParameters dto) {
 
-        dto.setStartDate(
-                dto.getRangeStart() == null ?
-                        null :
-                        LocalDateTime.parse(dto.getRangeStart(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        LocalDateTime start = dto.getRangeStart() == null ?
+                null :
+                LocalDateTime.parse(dto.getRangeStart(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        dto.setEndDate(
-                dto.getRangeEnd() == null ?
-                        null :
-                        LocalDateTime.parse(dto.getRangeEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        LocalDateTime end = dto.getRangeEnd() == null ?
+                null :
+                LocalDateTime.parse(dto.getRangeEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        return mapper.toDtoList(repository.getByInitiator(dto));
+        return mapper.toDtoList(getEventWithParameters.admin(dto, start, end));
     }
 
     @Override
-    public List<EventDto> getWithParametersByUser(GetWithParametersDto dto, HttpServletRequest request) {
+    public List<EventDto> getWithParametersByUser(UserDtoWithParameters dto, HttpServletRequest request) {
 
-        dto.setStartDate(
-                dto.getRangeStart() == null ?
-                        null :
-                        LocalDateTime.parse(dto.getRangeStart(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        LocalDateTime start = dto.getDateStart() == null ?
+                null :
+                LocalDateTime.parse(dto.getDateStart(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        dto.setEndDate(
-                dto.getRangeEnd() == null ?
-                        null :
-                        LocalDateTime.parse(dto.getRangeEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        LocalDateTime end = dto.getDateStart() == null ?
+                null :
+                LocalDateTime.parse(dto.getDateEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        List<Event> response = repository.getByCategory(dto);
+        List<Event> response = getEventWithParameters.user(dto, start, end);
 
         sendStats(response, request);
 

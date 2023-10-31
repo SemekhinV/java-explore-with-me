@@ -19,7 +19,7 @@ public interface EventService {
 
     EventDto get(Long id, HttpServletRequest request);
 
-    List<EventDto> getWithParametersByAdmin(GetWithParametersDto dto);
+    List<EventDto> getWithParametersByAdmin(AdminDtoWithParameters dto);
 
-    List<EventDto> getWithParametersByUser(GetWithParametersDto dto, HttpServletRequest request);
+    List<EventDto> getWithParametersByUser(UserDtoWithParameters dto, HttpServletRequest request);
 }

@@ -1,8 +1,10 @@
 package ru.practicum.ewm.event.repository;
 
 import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.event.dto.GetWithParametersDto;
+import ru.practicum.ewm.event.dto.AdminDtoWithParameters;
+import ru.practicum.ewm.event.dto.UserDtoWithParameters;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.enums.SortState;
 
@@ -17,6 +19,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 @AllArgsConstructor
 @Transactional(readOnly = true)
 public class EvenRepositoryImpl implements EventRepository {
@@ -33,7 +36,7 @@ public class EvenRepositoryImpl implements EventRepository {
      * @return List of events based on passed parameters
      */
     @Override
-    public List<Event> getByInitiator(GetWithParametersDto dto) {
+    public List<Event> admin(AdminDtoWithParameters dto, LocalDateTime start, LocalDateTime end) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
@@ -48,14 +51,14 @@ public class EvenRepositoryImpl implements EventRepository {
 
             criteria = builder.and(criteria,
                     builder.greaterThanOrEqualTo(root.get("eventDate").as(LocalDateTime.class),
-                    dto.getStartDate()));
+                    start));
         }
 
         if (dto.getRangeEnd() != null) {
 
             criteria = builder.and(criteria,
                     builder.lessThanOrEqualTo(root.get("eventDate").as(LocalDateTime.class),
-                    dto.getEndDate()));
+                    end));
         }
 
         if (dto.getCategories() != null && dto.getCategories().size() > 0) {
@@ -95,7 +98,7 @@ public class EvenRepositoryImpl implements EventRepository {
      * @return List of events based on passed parameters
      */
     @Override
-    public List<Event> getByCategory(GetWithParametersDto dto) {
+    public List<Event> user(UserDtoWithParameters dto, LocalDateTime start, LocalDateTime end) {
 
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
 
@@ -128,18 +131,18 @@ public class EvenRepositoryImpl implements EventRepository {
             criteria = builder.and(criteria, predicate);
         }
 
-        if (dto.getEndDate() != null) {
+        if (end != null) {
 
             criteria = builder.and(criteria,
                     builder.lessThanOrEqualTo(root.get("eventDate").as(LocalDateTime.class),
-                    dto.getEndDate()));
+                   end));
         }
 
-        if (dto.getStartDate() != null) {
+        if (start != null) {
 
             criteria = builder.and(criteria,
                     builder.greaterThanOrEqualTo(root.get("eventDate").as(LocalDateTime.class),
-                    dto.getStartDate()));
+                    start));
         }
 
         query.select(root).where(criteria).orderBy(builder.asc(root.get("eventDate")));
@@ -152,7 +155,7 @@ public class EvenRepositoryImpl implements EventRepository {
         if (dto.getAvailable()) {
 
             events = events.stream()
-                    .filter((event -> event.getConfirmedRequests() < (long) event.getParticipantLimit()))
+                    .filter((event -> event.getConfirmedRequests() < event.getParticipantLimit()))
                     .collect(Collectors.toList());
         }
 

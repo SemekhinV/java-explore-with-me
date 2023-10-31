@@ -2,9 +2,9 @@ package ru.practicum.ewm.event.controller;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.event.dto.AdminDtoWithParameters;
 import ru.practicum.ewm.event.dto.AdminEventUpdateDto;
 import ru.practicum.ewm.event.dto.EventDto;
-import ru.practicum.ewm.event.dto.GetWithParametersDto;
 import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.event.service.EventService;
 
@@ -27,20 +27,8 @@ public class AdminEventController {
                                     @RequestParam(required = false) List<Long> users,
                                     @RequestParam(required = false) String rangeEnd) {
 
-        return eventService.getWithParametersByAdmin(new GetWithParametersDto(
-                null,
-                users,
-                states,
-                categories,
-                null,
-                rangeStart,
-                null,
-                rangeEnd,
-                null,
-                null,
-                null,
-                from,
-                size));
+        return eventService.getWithParametersByAdmin(new AdminDtoWithParameters(
+                size, from, categories, states, rangeStart, users, rangeEnd));
     }
 
     @PatchMapping("/events/{eventId}")

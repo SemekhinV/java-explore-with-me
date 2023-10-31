@@ -3,7 +3,7 @@ package ru.practicum.ewm.event.controller;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.event.dto.EventDto;
-import ru.practicum.ewm.event.dto.GetWithParametersDto;
+import ru.practicum.ewm.event.dto.UserDtoWithParameters;
 import ru.practicum.ewm.event.enums.SortState;
 import ru.practicum.ewm.event.service.EventService;
 
@@ -35,19 +35,8 @@ public class PublicEventController {
                                     @RequestParam(required = false) String text,
                                     HttpServletRequest request) {
 
-        return service.getWithParametersByUser(new GetWithParametersDto(
-                text,
-                null,
-                null,
-                categories,
-                paid,
-                rangeStart,
-                null,
-                rangeEnd,
-                null,
-                onlyAvailable,
-                sort,
-                from,
-                size), request);
+        return service.getWithParametersByUser(new UserDtoWithParameters(
+                text, size, from, onlyAvailable, categories, rangeStart, rangeEnd, sort, paid),
+                request);
     }
 }
