@@ -3,9 +3,11 @@ package ru.practicum.ewm.event.repository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.error.exception.EventStateException;
 import ru.practicum.ewm.event.dto.AdminDtoWithParameters;
 import ru.practicum.ewm.event.dto.UserDtoWithParameters;
 import ru.practicum.ewm.event.entity.Event;
+import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.event.enums.SortState;
 
 import javax.persistence.EntityManager;
@@ -135,6 +137,12 @@ public class EvenRepositoryImpl implements EventRepository {
                 .setFirstResult(dto.getFrom())
                 .setMaxResults(dto.getSize())
                 .getResultList();
+
+        if (events.stream().anyMatch(
+                (event) -> !EventState.PUBLISHED.equals(event.getState()))) {
+
+            throw new EventStateException("Event must be published.");
+        }
 
         if (dto.getAvailable()) {
 

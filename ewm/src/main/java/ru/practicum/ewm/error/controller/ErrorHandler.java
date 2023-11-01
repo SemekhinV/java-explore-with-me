@@ -20,7 +20,7 @@ public class ErrorHandler {
     public Error entityAlreadyExist(final EntityExistException e) {
 
         return Error.builder()
-                .status("BAD_REQUEST")
+                .status("NOT_FOUND")
                 .reason("Incorrect request")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
@@ -74,6 +74,19 @@ public class ErrorHandler {
         return Error.builder()
                 .status("CONFLICT")
                 .reason("Incorrect request")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
+    @ResponseBody
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Error eventNotPublishException(final EventNotPublishedException e) {
+
+        return Error.builder()
+                .status("BAD_REQUEST")
+                .reason("Event should be published.")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();

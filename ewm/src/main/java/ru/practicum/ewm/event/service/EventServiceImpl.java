@@ -7,10 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.category.entity.Category;
 import ru.practicum.ewm.category.repository.CategoryRepository;
-import ru.practicum.ewm.error.exception.EntityExistException;
-import ru.practicum.ewm.error.exception.EventPublishException;
-import ru.practicum.ewm.error.exception.EventStateException;
-import ru.practicum.ewm.error.exception.EventTimeException;
+import ru.practicum.ewm.error.exception.*;
 import ru.practicum.ewm.event.dto.*;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.enums.AdminStateAction;
@@ -270,7 +267,7 @@ public class EventServiceImpl implements EventService {
             Category category = categoryRepository.findById(dto.getCategory()).orElseThrow(
                     () -> {
                         log.error("This category does not exist");
-                        throw new EntityExistException("This category does not exist");
+                        throw new CategoryExistsException("This category does not exist");
                     });
 
             event.setCategory(category);
