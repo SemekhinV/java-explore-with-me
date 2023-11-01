@@ -1,6 +1,7 @@
 package ru.practicum.ewm.event.entity;
 
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -28,7 +29,7 @@ public class Location {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Location)) return false;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Location location = (Location) o;
         return this.getId() != null && Objects.equals(this.getId(), location.getId());
     }

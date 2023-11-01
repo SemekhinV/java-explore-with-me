@@ -128,7 +128,9 @@ public class EventServiceImpl implements EventService {
                 null :
                 LocalDateTime.parse(dto.getRangeEnd(), DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
-        return mapper.toDtoList(getEventWithParameters.admin(dto, start, end));
+        var d = getEventWithParameters.admin(dto, start, end);
+
+        return mapper.toDtoList(d);
     }
 
     @Override

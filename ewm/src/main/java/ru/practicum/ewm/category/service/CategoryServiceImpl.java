@@ -88,7 +88,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = repository.findById(id).orElseThrow(
                 () -> {
                     log.error("Category with id=" + id + " does`t exist.");
-                    throw new CategoryExistsException("Category with id=" + id + " does`t exist.");
+                    throw new EntityExistException("Category with id=" + id + " does`t exist.");
                 }
         );
 

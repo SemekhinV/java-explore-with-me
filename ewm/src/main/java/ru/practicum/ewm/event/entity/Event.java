@@ -1,6 +1,7 @@
 package ru.practicum.ewm.event.entity;
 
 import lombok.*;
+import org.hibernate.Hibernate;
 import ru.practicum.ewm.category.entity.Category;
 import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.user.entity.User;
@@ -108,7 +109,7 @@ public class Event {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Event)) return false;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         Event event = (Event) o;
         return this.getId() != null && Objects.equals(this.getId(), event.getId());
     }

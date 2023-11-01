@@ -28,7 +28,7 @@ public class AdminEventController {
                                     @RequestParam(required = false) String rangeEnd) {
 
         return eventService.getWithParametersByAdmin(new AdminDtoWithParameters(
-                size, from, categories, states, rangeStart, users, rangeEnd));
+                from, size, categories, states, rangeStart, users, rangeEnd));
     }
 
     @PatchMapping("/events/{eventId}")

@@ -15,9 +15,8 @@ import ru.practicum.ewm.error.exception.EntityExistException;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.repository.EventJpaRepository;
 
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Slf4j
 @Service
@@ -36,17 +35,15 @@ public class CompilationServiceImpl implements CompilationService {
     @Transactional
     public CompilationDto save(CompilationRequestDto savedCompilationDto) {
 
-        Optional<Event> events = eventRepository.findAllByIdIn(savedCompilationDto.getEvents());
+        List<Event> events = eventRepository.findAllByIdIn(savedCompilationDto.getEvents());
 
         Compilation compilation = Compilation.builder()
                 .pinned(savedCompilationDto.getPinned())
                 .title(savedCompilationDto.getTitle())
-                .events(events.map(Set::of).orElseGet(Set::of))
+                .events(new HashSet<>(events))
                 .build();
 
-        Compilation saved = repository.save(compilation);
-
-        return mapper.toDto(saved);
+        return mapper.toDto(repository.save(compilation));
     }
 
     @Override
@@ -81,9 +78,9 @@ public class CompilationServiceImpl implements CompilationService {
 
         if (eventsIds != null) {
 
-            Optional<Event> events = eventRepository.findAllByIdIn(dto.getEvents());
+            List<Event> events = eventRepository.findAllByIdIn(dto.getEvents());
 
-            compilation.setEvents(events.map(Set::of).orElseGet(Set::of));
+            compilation.setEvents(new HashSet<>(events));
         }
 
         compilation.toBuilder()

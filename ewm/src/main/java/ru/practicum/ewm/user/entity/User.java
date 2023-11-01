@@ -1,6 +1,7 @@
 package ru.practicum.ewm.user.entity;
 
 import lombok.*;
+import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -28,7 +29,7 @@ public class User {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof User)) return false;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
         User user = (User) o;
         return this.getId() != null && Objects.equals(this.getId(), user.getId());
     }
