@@ -1,4 +1,4 @@
-package ru.practicum.ewm.error.exception;
+package ru.practicum.ewm.error.exception.util;
 
 public class EntityExistException extends RuntimeException {
 

@@ -8,6 +8,7 @@ import ru.practicum.ewm.event.enums.SortState;
 import ru.practicum.ewm.event.service.EventService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Min;
 import java.util.List;
 
 @RestController
@@ -24,15 +25,15 @@ public class PublicEventController {
     }
 
     @GetMapping
-    public List<EventDto> getByUser(@RequestParam(required = false, defaultValue = "10") Integer size,
-                                    @RequestParam(required = false, defaultValue = "0") Integer from,
+    public List<EventDto> getByUser(@RequestParam(required = false, defaultValue = "10") @Min(1) Integer size,
+                                    @RequestParam(required = false, defaultValue = "0") @Min(0) Integer from,
                                     @RequestParam(defaultValue = "false") boolean onlyAvailable,
                                     @RequestParam(required = false) List<Long> categories,
                                     @RequestParam(required = false) String rangeStart,
                                     @RequestParam(required = false) String rangeEnd,
                                     @RequestParam(required = false) SortState sort,
                                     @RequestParam(required = false) Boolean paid,
-                                    @RequestParam(required = false) String text,
+                                    @RequestParam(required = false, defaultValue = "") String text,
                                     HttpServletRequest request) {
 
         return service.getWithParametersByUser(new UserDtoWithParameters(

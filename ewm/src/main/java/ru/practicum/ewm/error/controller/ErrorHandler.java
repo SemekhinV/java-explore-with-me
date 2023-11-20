@@ -5,7 +5,16 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.ewm.error.exception.*;
+import ru.practicum.ewm.error.exception.category.CategoryDataException;
+import ru.practicum.ewm.error.exception.category.CategoryExistsException;
+import ru.practicum.ewm.error.exception.category.CategoryNotEmpyException;
+import ru.practicum.ewm.error.exception.event.*;
+import ru.practicum.ewm.error.exception.request.RequestExistException;
+import ru.practicum.ewm.error.exception.request.RequestStateException;
+import ru.practicum.ewm.error.exception.user.UserAccessException;
+import ru.practicum.ewm.error.exception.user.UserExistException;
+import ru.practicum.ewm.error.exception.util.EntityExistException;
+import ru.practicum.ewm.error.exception.util.TimeIntervalException;
 import ru.practicum.ewm.error.response.Error;
 
 import java.time.LocalDateTime;
@@ -120,8 +129,21 @@ public class ErrorHandler {
 
     @ResponseBody
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Error eventTimeException(final TimeIntervalException e) {
+
+        return Error.builder()
+                .status("BAD_REQUEST")
+                .reason("Exclusion of time interval boundary.")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
+    @ResponseBody
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
-    public Error participantLimitException(final ParticipantLimitException e) {
+    public Error participantLimitException(final EventParticipantLimitException e) {
 
         return Error.builder()
                 .status("CONFLICT")
@@ -178,6 +200,19 @@ public class ErrorHandler {
         return Error.builder()
                 .status("CONFLICT")
                 .reason("Incorrect request")
+                .message(e.getMessage())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build();
+    }
+
+    @ResponseBody
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Error requestExistException(final EventNotExistException e) {
+
+        return Error.builder()
+                .status("NOT_FOUND")
+                .reason("Event does`t exist.")
                 .message(e.getMessage())
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build();

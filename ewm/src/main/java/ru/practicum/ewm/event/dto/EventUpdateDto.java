@@ -8,8 +8,6 @@ import ru.practicum.ewm.event.enums.StateAction;
 import javax.validation.constraints.Size;
 import java.time.LocalDateTime;
 
-import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
-
 @Getter
 @Setter
 @Builder
@@ -18,7 +16,7 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @AllArgsConstructor
 public class EventUpdateDto {
 
-    @Size(min = 10, max = 2000)
+    @Size(min = 20, max = 2000)
     private String annotation;
 
     private Long category;
@@ -26,7 +24,7 @@ public class EventUpdateDto {
     @Size(min = 20, max = 7000)
     private String description;
 
-    @JsonFormat(shape = STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
 
     private Location location;

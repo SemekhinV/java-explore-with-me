@@ -60,7 +60,7 @@ public class PrivateEventController {
                                           @PathVariable Long eventId,
                                           @PathVariable Long userId) {
 
-        return eventService.update(userId, eventId, updateEventUserDto);
+        return eventService.updateByUser(userId, eventId, updateEventUserDto);
     }
 
     @GetMapping("/events/{eventId}")

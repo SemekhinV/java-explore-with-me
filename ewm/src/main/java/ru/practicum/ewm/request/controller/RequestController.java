@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.request.dto.RequestDto;
 import ru.practicum.ewm.request.service.RequestService;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RestController
@@ -17,7 +18,7 @@ public class RequestController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public RequestDto saveRequest(@RequestParam Long eventId,
+    public RequestDto saveRequest(@RequestParam @NotNull Long eventId,
                                   @PathVariable Long userId) {
 
         return service.save(userId, eventId);

@@ -4,9 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.error.exception.*;
+import ru.practicum.ewm.error.exception.event.EventParticipantLimitException;
+import ru.practicum.ewm.error.exception.event.EventPublishException;
+import ru.practicum.ewm.error.exception.request.RequestExistException;
+import ru.practicum.ewm.error.exception.request.RequestStateException;
+import ru.practicum.ewm.error.exception.user.UserAccessException;
+import ru.practicum.ewm.error.exception.util.EntityExistException;
 import ru.practicum.ewm.event.entity.Event;
-import ru.practicum.ewm.event.repository.EventJpaRepository;
+import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.request.dto.RequestDto;
 import ru.practicum.ewm.request.dto.RequestUpdateDto;
 import ru.practicum.ewm.request.dto.RequestUpdateResponseDto;
@@ -29,7 +34,7 @@ public class RequestServiceImpl implements RequestService {
 
     private final RequestRepository requestRepository;
 
-    private final EventJpaRepository eventRepository;
+    private final EventRepository eventRepository;
 
     private final UserRepository userRepository;
 
@@ -72,14 +77,16 @@ public class RequestServiceImpl implements RequestService {
 
             log.error("Participant limit was exceeded");
 
-            throw new ParticipantLimitException("Participant limit was exceeded");
+            throw new EventParticipantLimitException("Participant limit was exceeded");
         }
 
         Request request = Request.builder()
                 .created(LocalDateTime.now())
                 .event(eventId)
                 .requester(userId)
-                .status(RequestStatus.CONFIRMED)
+                .status(event.getRequestModeration() && event.getParticipantLimit() > 0 ?
+                                RequestStatus.PENDING :
+                                RequestStatus.CONFIRMED)
                 .build();
 
         return requestMapper.toDto(requestRepository.save(request));
@@ -140,7 +147,7 @@ public class RequestServiceImpl implements RequestService {
 
             log.error("Participants limit was exceeded");
 
-            throw new ParticipantLimitException("Participants limit was exceeded");
+            throw new EventParticipantLimitException("Participants limit was exceeded");
         }
 
         for (Request request : requestsToUpdate) {
@@ -150,8 +157,10 @@ public class RequestServiceImpl implements RequestService {
 
         requestRepository.saveAll(requestsToUpdate);
 
-        if (RequestOperationStatus.CONFIRMED.equals(requestUpdateDto.getStatus()))
+        if (RequestOperationStatus.CONFIRMED.equals(requestUpdateDto.getStatus())) {
+
             event.setConfirmedRequests(requestsToUpdate.size() + event.getConfirmedRequests());
+        }
 
         eventRepository.save(event);
 

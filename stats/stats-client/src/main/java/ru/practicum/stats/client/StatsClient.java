@@ -27,13 +27,11 @@ public class StatsClient {
                 .build();
     }
 
-    public List<ViewStatsDto> getStats(String start,
-                                       String end,
-                                       List<String> uris,
-                                       Boolean unique) {
-        var paramsUri = uris.stream().reduce("", (result, uri) -> result + "&uris=" + uri);
+    public List<ViewStatsDto> getStats(String start, String end, List<String> uris, Boolean unique) {
 
-        return webClient.get()
+        String paramsUri = uris.stream().reduce("", (result, uri) -> result + "&uris=" + uri);
+
+        var stats = webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/stats")
                         .queryParam("start", start)
                         .queryParam("end", end)
@@ -44,6 +42,8 @@ public class StatsClient {
                 .bodyToFlux(ViewStatsDto.class)
                 .collectList()
                 .block();
+
+        return stats;
     }
 
     public void addStats(HitDto hitDto) {

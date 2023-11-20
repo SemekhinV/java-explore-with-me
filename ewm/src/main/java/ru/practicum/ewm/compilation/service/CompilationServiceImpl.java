@@ -11,9 +11,9 @@ import ru.practicum.ewm.compilation.entity.Compilation;
 import ru.practicum.ewm.compilation.mapper.CompilationMapper;
 import ru.practicum.ewm.compilation.repository.CompilationJpaRepository;
 import ru.practicum.ewm.compilation.repository.CompilationRepository;
-import ru.practicum.ewm.error.exception.EntityExistException;
+import ru.practicum.ewm.error.exception.util.EntityExistException;
 import ru.practicum.ewm.event.entity.Event;
-import ru.practicum.ewm.event.repository.EventJpaRepository;
+import ru.practicum.ewm.event.repository.EventRepository;
 
 import java.util.HashSet;
 import java.util.List;
@@ -29,17 +29,17 @@ public class CompilationServiceImpl implements CompilationService {
     private final CompilationRepository simpleCompRepository;
 
     private final CompilationMapper mapper;
-    private final EventJpaRepository eventRepository;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional
-    public CompilationDto save(CompilationRequestDto savedCompilationDto) {
+    public CompilationDto save(CompilationRequestDto dto) {
 
-        List<Event> events = eventRepository.findAllByIdIn(savedCompilationDto.getEvents());
+        List<Event> events = eventRepository.findAllByIdIn(dto.getEvents());
 
         Compilation compilation = Compilation.builder()
-                .pinned(savedCompilationDto.getPinned())
-                .title(savedCompilationDto.getTitle())
+                .pinned(dto.getPinned() != null && dto.getPinned())
+                .title(dto.getTitle())
                 .events(new HashSet<>(events))
                 .build();
 

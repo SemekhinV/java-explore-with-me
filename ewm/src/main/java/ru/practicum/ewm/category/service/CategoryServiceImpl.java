@@ -10,11 +10,11 @@ import ru.practicum.ewm.category.dto.CategoryResponseDto;
 import ru.practicum.ewm.category.entity.Category;
 import ru.practicum.ewm.category.mapper.CategoryMapper;
 import ru.practicum.ewm.category.repository.CategoryRepository;
-import ru.practicum.ewm.error.exception.CategoryDataException;
-import ru.practicum.ewm.error.exception.CategoryExistsException;
-import ru.practicum.ewm.error.exception.CategoryNotEmpyException;
-import ru.practicum.ewm.error.exception.EntityExistException;
-import ru.practicum.ewm.event.repository.EventJpaRepository;
+import ru.practicum.ewm.error.exception.category.CategoryDataException;
+import ru.practicum.ewm.error.exception.category.CategoryExistsException;
+import ru.practicum.ewm.error.exception.category.CategoryNotEmpyException;
+import ru.practicum.ewm.error.exception.util.EntityExistException;
+import ru.practicum.ewm.event.repository.EventRepository;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryMapper mapper;
 
-    private final EventJpaRepository eventRepository;
+    private final EventRepository eventRepository;
 
     @Override
     @Transactional
@@ -48,7 +48,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     @Transactional
-    public CategoryResponseDto update(Long id, CategoryResponseDto category) {
+    public CategoryResponseDto update(Long id, CategoryRequestDto category) {
 
         if (repository.existsCategoryByName(category.getName())) {
 

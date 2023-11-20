@@ -1,15 +1,24 @@
 package ru.practicum.ewm.event.repository;
 
-import ru.practicum.ewm.event.dto.AdminDtoWithParameters;
-import ru.practicum.ewm.event.dto.UserDtoWithParameters;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 import ru.practicum.ewm.event.entity.Event;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
-public interface EventRepository {
+@Repository
+public interface EventRepository extends JpaRepository<Event, Long> {
 
-    List<Event> admin(AdminDtoWithParameters dto, LocalDateTime start, LocalDateTime end);
+    Optional<Event> findByIdAndInitiatorId(Long eventId, Long userId);
 
-    List<Event> user(UserDtoWithParameters dto, LocalDateTime start, LocalDateTime end);
+    Page<Event> findAllByInitiatorId(Long userId, Pageable page);
+
+    List<Event> findAllByIdIn(List<Long> idIn);
+
+    Boolean existsByCategoryId(Long categoryId);
+
+    Optional<Event> findByIdAndPublishedOnIsNotNull(Long id);
 }

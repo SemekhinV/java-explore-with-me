@@ -1,4 +1,4 @@
-package ru.practicum.ewm.error.exception;
+package ru.practicum.ewm.error.exception.event;
 
 public class EventNotPublishedException extends RuntimeException {
 

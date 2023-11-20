@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.error.exception.UserExistException;
+import ru.practicum.ewm.error.exception.user.UserExistException;
 import ru.practicum.ewm.user.dto.UserRequestDto;
 import ru.practicum.ewm.user.mapper.UserMapper;
 import ru.practicum.ewm.user.repository.UserRepository;
