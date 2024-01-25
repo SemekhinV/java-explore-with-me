@@ -123,9 +123,9 @@ public class EventAdminServiceImpl implements EventAdminService {
             }
         }
 
-        var result = mapper.toDto(repository.save(event));
-
         updateEvent(event, dto);
+
+        var result = mapper.toDto(repository.save(event));
 
         result.setViews(getViews(result));
 
