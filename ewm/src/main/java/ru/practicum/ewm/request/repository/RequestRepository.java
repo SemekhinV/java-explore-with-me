@@ -22,4 +22,6 @@ public interface RequestRepository extends JpaRepository<Request, Long> {
             "JOIN Event AS event ON request.event = event.id " +
             "WHERE request.event = :eventId AND event.initiator.id = :userId")
     List<Request> findAllByEventWithInitiator(@Param("userId") Long userId, @Param("eventId") Long eventId);
+
+    List<Request> findAllByIdIn(List<Long> ids);
 }

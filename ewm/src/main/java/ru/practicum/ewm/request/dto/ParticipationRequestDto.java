@@ -17,14 +17,14 @@ import static ru.practicum.ewm.util.TimeFormatter.DATE_TIME_FORMAT;
 @AllArgsConstructor
 public class ParticipationRequestDto {
 
-    private Long id;
+    private long id;
+
+    private long requester;
+
+    private long event;
+
+    private RequestStatus status;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_TIME_FORMAT)
     private LocalDateTime created;
-
-    private Long event;
-
-    private Long requester;
-
-    private RequestStatus status;
 }

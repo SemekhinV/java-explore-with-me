@@ -8,8 +8,6 @@ import ru.practicum.ewm.error.exception.EntityConflictException;
 import ru.practicum.ewm.error.exception.EntityNotFoundException;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
-import ru.practicum.ewm.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.entity.Request;
 import ru.practicum.ewm.request.enums.RequestStatus;
@@ -19,11 +17,11 @@ import ru.practicum.ewm.user.repository.UserRepository;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static java.time.LocalDateTime.now;
 import static ru.practicum.ewm.event.enums.EventState.PUBLISHED;
-import static ru.practicum.ewm.request.enums.RequestStatus.*;
+import static ru.practicum.ewm.request.enums.RequestStatus.CONFIRMED;
+import static ru.practicum.ewm.request.enums.RequestStatus.PENDING;
 
 @Slf4j
 @Service
@@ -84,52 +82,6 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
-    public EventRequestStatusUpdateResult updateRequestsStatusOfUserEvent(Long userId, Long eventId,
-                                                                          EventRequestStatusUpdateRequest updateDto) {
-
-        Event event = eventRepository.findById(eventId).orElseThrow();
-
-        List<Request> requests = requestRepository.findAllByEventWithInitiator(userId, eventId);
-
-        List<Request> requestsToUpdate = requests.stream()
-                .filter(s -> updateDto.getRequestIds().contains(s.getId()))
-                .collect(Collectors.toList());
-
-        if (requestsToUpdate.stream().anyMatch(request -> !PENDING.equals(request.getStatus()))) {
-
-            throw new EntityConflictException("Статус можно изменить только у заявок, находящихся в состоянии ожидания");
-        }
-
-        if (event.getConfirmedRequests() + requestsToUpdate.size() > event.getParticipantLimit()) {
-
-            requestsToUpdate.forEach(s -> s.setStatus(RequestStatus.REJECTED));
-        }
-
-        requestRepository.saveAll(requestsToUpdate);
-
-        var result = new EventRequestStatusUpdateResult();
-
-        switch (updateDto.getStatus()) {
-
-            case CONFIRMED: {
-
-                requestsToUpdate.forEach(s -> s.setStatus(CONFIRMED));
-                result.setConfirmedRequests(requestMapper.toDtoList(requestsToUpdate));
-                break;
-            }
-
-            case REJECTED: {
-
-                requestsToUpdate.forEach(s -> s.setStatus(REJECTED));
-                result.setConfirmedRequests(requestMapper.toDtoList(requestsToUpdate));
-                break;
-            }
-        }
-
-        return result;
-    }
-
-    @Override
     public ParticipationRequestDto rejectRequest(Long userId, Long requestId) {
 
         Request request = requestRepository.findByRequesterAndId(userId, requestId).orElseThrow(
@@ -138,12 +90,6 @@ public class RequestServiceImpl implements RequestService {
         request.setStatus(RequestStatus.CANCELED);
 
         return requestMapper.toDto(requestRepository.save(request));
-    }
-
-    @Override
-    public List<ParticipationRequestDto> getRequestsOfCurrentUserByEventIdAndUserId(Long userId, Long eventId) {
-
-        return requestMapper.toDtoList(requestRepository.findAllByEventWithInitiator(userId, eventId));
     }
 
     private Event checkUserAndEventExist(Long userId, Long eventId) {

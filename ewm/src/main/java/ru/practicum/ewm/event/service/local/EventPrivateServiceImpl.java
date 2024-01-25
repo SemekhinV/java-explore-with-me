@@ -21,7 +21,10 @@ import ru.practicum.ewm.event.repository.LocationRepository;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
 import ru.practicum.ewm.request.dto.EventRequestStatusUpdateResult;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
-import ru.practicum.ewm.request.service.RequestService;
+import ru.practicum.ewm.request.entity.Request;
+import ru.practicum.ewm.request.enums.RequestStatus;
+import ru.practicum.ewm.request.mapper.RequestMapper;
+import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.repository.UserRepository;
 import ru.practicum.stats.client.StatsClient;
 
@@ -32,6 +35,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.request.enums.RequestOperationStatus.CONFIRMED;
+import static ru.practicum.ewm.request.enums.RequestStatus.PENDING;
+import static ru.practicum.ewm.request.enums.RequestStatus.REJECTED;
 import static ru.practicum.ewm.util.TimeFormatter.DATE_TIME_FORMATTER;
 
 @Service
@@ -51,7 +56,9 @@ public class EventPrivateServiceImpl implements EventPrivateService {
 
     private final LocationRepository locationRepository;
 
-    private final RequestService requestService;
+    private final RequestRepository requestRepository;
+
+    private final RequestMapper requestMapper;
 
     @Override
     public EventFullDto save(Long userId, NewEventDto dto) {
@@ -175,7 +182,9 @@ public class EventPrivateServiceImpl implements EventPrivateService {
 
         checkEventAndUserExist(userId, eventId);
 
-        return requestService.getRequestsOfCurrentUserByEventIdAndUserId(userId, eventId);
+        var result = requestRepository.findAllByEventWithInitiator(userId, eventId);
+
+        return requestMapper.toDtoList(result);
     }
 
     @Override
@@ -195,16 +204,57 @@ public class EventPrivateServiceImpl implements EventPrivateService {
             throw new EntityConflictException("Достигнут лимит по заявкам.");
         }
 
-        var requests = requestService.updateRequestsStatusOfUserEvent(userId,eventId, updateDto);
+        List<Request> requestsToUpdate = requestRepository.findAllByIdIn(updateDto.getRequestIds());
+
+        if (requestsToUpdate.stream().anyMatch(request -> !PENDING.equals(request.getStatus()))) {
+
+            throw new EntityConflictException("Статус можно изменить только у заявок, находящихся в состоянии ожидания");
+        }
+
+        if (event.getParticipantLimit() - event.getConfirmedRequests() <= 0) {
+
+            requestsToUpdate.forEach(s -> s.setStatus(RequestStatus.REJECTED));
+        }
+
+        var result = new EventRequestStatusUpdateResult();
+
+        switch (updateDto.getStatus()) {
+
+            case CONFIRMED: {
+
+                requestsToUpdate.forEach(s -> s.setStatus(RequestStatus.CONFIRMED));
+
+                result.setConfirmedRequests(requestMapper.toDtoList(requestsToUpdate));
+
+                result.setRejectedRequests(List.of());
+
+                event.setConfirmedRequests(event.getConfirmedRequests() + result.getConfirmedRequests().size());
+
+                break;
+            }
+
+            case REJECTED: {
+
+                requestsToUpdate.forEach(s -> s.setStatus(REJECTED));
+
+                result.setConfirmedRequests(List.of());
+
+                result.setRejectedRequests(requestMapper.toDtoList(requestsToUpdate));
+
+                break;
+            }
+        }
 
         if (CONFIRMED.equals(updateDto.getStatus())) {
 
-            event.setConfirmedRequests(event.getConfirmedRequests() + requests.getConfirmedRequests().size());
+            event.setConfirmedRequests(event.getConfirmedRequests() + result.getConfirmedRequests().size());
         }
 
         repository.save(event);
 
-        return requests;
+        requestRepository.saveAll(requestsToUpdate);
+
+        return result;
     }
 
     private Event checkEventAndUserExist(Long userId, Long eventId) {

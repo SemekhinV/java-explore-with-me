@@ -1,6 +1,9 @@
 package ru.practicum.ewm.compilation.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.Hibernate;
 import ru.practicum.ewm.event.entity.Event;
 

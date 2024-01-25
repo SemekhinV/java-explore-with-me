@@ -12,8 +12,8 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface CompilationMapper {
 
-    @Mapping(source = "events", target = "events")
-    Compilation toEntity(NewCompilationDto dto, List<Event> events);
+    @Mapping(source = "eventsList", target = "events")
+    Compilation toEntity(NewCompilationDto dto, List<Event> eventsList);
 
     CompilationDto toDto(Compilation compilation);
 
