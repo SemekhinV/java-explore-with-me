@@ -8,4 +8,6 @@ import ru.practicum.ewm.category.entity.Category;
 public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Boolean existsCategoryByName(String name);
+
+    Boolean existsCategoryByNameAndIdNot(String name, Long categoryId);
 }

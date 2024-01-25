@@ -4,32 +4,31 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.error.exception.event.EventParticipantLimitException;
-import ru.practicum.ewm.error.exception.event.EventPublishException;
-import ru.practicum.ewm.error.exception.request.RequestExistException;
-import ru.practicum.ewm.error.exception.request.RequestStateException;
-import ru.practicum.ewm.error.exception.user.UserAccessException;
-import ru.practicum.ewm.error.exception.util.EntityExistException;
+import ru.practicum.ewm.error.exception.EntityConflictException;
+import ru.practicum.ewm.error.exception.EntityNotFoundException;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.request.dto.RequestDto;
-import ru.practicum.ewm.request.dto.RequestUpdateDto;
-import ru.practicum.ewm.request.dto.RequestUpdateResponseDto;
+import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.ewm.request.dto.EventRequestStatusUpdateResult;
+import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.entity.Request;
-import ru.practicum.ewm.request.enums.RequestOperationStatus;
 import ru.practicum.ewm.request.enums.RequestStatus;
 import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import static java.time.LocalDateTime.now;
+import static ru.practicum.ewm.event.enums.EventState.PUBLISHED;
+import static ru.practicum.ewm.request.enums.RequestStatus.*;
 
 @Slf4j
 @Service
+@Transactional
 @AllArgsConstructor
-@Transactional(readOnly = true)
 public class RequestServiceImpl implements RequestService {
 
     private final RequestRepository requestRepository;
@@ -41,153 +40,120 @@ public class RequestServiceImpl implements RequestService {
     private final RequestMapper requestMapper;
 
     @Override
-    @Transactional
-    public RequestDto save(Long userId, Long eventId) {
+    public List<ParticipationRequestDto> getAllUsersRequest(Long userId) {
+
+        userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("Пользователь с id = " + userId + " не найден."));
+
+
+        return requestMapper.toDtoList(requestRepository.findAllByRequester(userId));
+    }
+
+    @Override
+    public ParticipationRequestDto save(Long userId, Long eventId) {
 
         if (requestRepository.existsByRequesterAndEvent(userId, eventId)) {
 
-            log.error("Request with userId=" + userId + " and eventId=" + eventId + " already exist.");
-
-            throw new RequestExistException("Request is already exist");
+            throw new EntityConflictException("Данный пользователь уже оставил запрос на участие в указанном событии.");
         }
 
-        Event event = eventRepository.findById(eventId).orElseThrow(
-                () -> {
-                    log.error("Event with id=" + eventId + " does not exist");
-                    throw new EntityExistException("Event with id=" + eventId + " does not exist");
-                });
+        Event event = checkUserAndEventExist(userId, eventId);
 
-        if (event.getInitiator().getId().equals(userId)) {
+        if (Objects.equals(event.getInitiator().getId(), userId)) {
 
-            log.error("Request cannot be created by the initiator (id=" + userId + ")");
-
-            throw new UserAccessException("Request cannot be created by the initiator (id=" + userId + ")");
+            throw new EntityConflictException("Инициатор события не может добавить запрос на участие в своём событии");
         }
 
-        if (event.getPublishedOn() == null) {
+        if (PUBLISHED != event.getState()) {
 
-            log.error("Event has not been published yet");
-
-            throw new EventPublishException("Event has not been published yet");
+            throw new EntityConflictException("Выбранное событие еще не опубликовано");
         }
 
         List<Request> requests = requestRepository.findAllByEvent(eventId);
 
         if (!event.getRequestModeration() && requests.size() >= event.getParticipantLimit()) {
 
-            log.error("Participant limit was exceeded");
-
-            throw new EventParticipantLimitException("Participant limit was exceeded");
+            throw new EntityConflictException("В выбранном событии достигнут лимит запросов на участие.");
         }
 
-        Request request = Request.builder()
-                .created(LocalDateTime.now())
-                .event(eventId)
-                .requester(userId)
-                .status(event.getRequestModeration() && event.getParticipantLimit() > 0 ?
-                                RequestStatus.PENDING :
-                                RequestStatus.CONFIRMED)
-                .build();
+        var result = new Request(null, event.getRequestModeration() && event.getParticipantLimit() > 0 ?
+                PENDING
+                : CONFIRMED, eventId, userId, now());
 
-        return requestMapper.toDto(requestRepository.save(request));
+        return requestMapper.toDto(requestRepository.save(result));
     }
 
     @Override
-    public List<RequestDto> get(Long userId) {
+    public EventRequestStatusUpdateResult updateRequestsStatusOfUserEvent(Long userId, Long eventId,
+                                                                          EventRequestStatusUpdateRequest updateDto) {
 
-        userRepository.findById(userId).orElseThrow(
-                () -> {
-                    log.error("User with id=" + userId + " does`t exist");
-                    throw new EntityExistException("User with id=" + userId + " does`t exist");
-                });
-
-        return requestMapper.toDtoList(requestRepository.findAllByRequester(userId));
-    }
-
-    @Override
-    public List<RequestDto> getByOwnerOfEvent(Long userId, Long eventId) {
-
-        return requestMapper.toDtoList(requestRepository.findAllByEventWithInitiator(userId, eventId));
-    }
-
-    @Override
-    @Transactional
-    public RequestUpdateResponseDto updateRequest(Long userId, Long eventId, RequestUpdateDto requestUpdateDto) {
-
-        Event event = eventRepository.findById(eventId).orElseThrow(
-                () -> {
-                    log.error("Event with id=" + eventId + " does not exist");
-                    throw new EntityExistException("Event with id=" + eventId + " does not exist");
-                });
-
-        RequestUpdateResponseDto result = new RequestUpdateResponseDto();
-
-        if (!event.getRequestModeration() || event.getParticipantLimit() == 0) {
-
-            return result;
-        }
+        Event event = eventRepository.findById(eventId).orElseThrow();
 
         List<Request> requests = requestRepository.findAllByEventWithInitiator(userId, eventId);
 
         List<Request> requestsToUpdate = requests.stream()
-                .filter(val -> requestUpdateDto.getRequestIds().contains(val.getId()))
+                .filter(s -> updateDto.getRequestIds().contains(s.getId()))
                 .collect(Collectors.toList());
 
-        if (requestsToUpdate.stream()
-                .anyMatch(request -> RequestStatus.CONFIRMED.equals(request.getStatus())
-                        && RequestOperationStatus.REJECTED.equals(requestUpdateDto.getStatus()))) {
+        if (requestsToUpdate.stream().anyMatch(request -> !PENDING.equals(request.getStatus()))) {
 
-            log.error("Request has been already confirmed");
-
-            throw new RequestStateException("Request has been already confirmed");
+            throw new EntityConflictException("Статус можно изменить только у заявок, находящихся в состоянии ожидания");
         }
 
-        if ((event.getConfirmedRequests() + requestsToUpdate.size() > event.getParticipantLimit())
-                && RequestOperationStatus.CONFIRMED.equals(requestUpdateDto.getStatus())) {
+        if (event.getConfirmedRequests() + requestsToUpdate.size() > event.getParticipantLimit()) {
 
-            log.error("Participants limit was exceeded");
-
-            throw new EventParticipantLimitException("Participants limit was exceeded");
-        }
-
-        for (Request request : requestsToUpdate) {
-
-            request.setStatus(RequestStatus.valueOf(requestUpdateDto.getStatus().toString()));
+            requestsToUpdate.forEach(s -> s.setStatus(RequestStatus.REJECTED));
         }
 
         requestRepository.saveAll(requestsToUpdate);
 
-        if (RequestOperationStatus.CONFIRMED.equals(requestUpdateDto.getStatus())) {
+        var result = new EventRequestStatusUpdateResult();
 
-            event.setConfirmedRequests(requestsToUpdate.size() + event.getConfirmedRequests());
-        }
+        switch (updateDto.getStatus()) {
 
-        eventRepository.save(event);
+            case CONFIRMED: {
 
-        if (RequestOperationStatus.REJECTED.equals(requestUpdateDto.getStatus())) {
+                requestsToUpdate.forEach(s -> s.setStatus(CONFIRMED));
+                result.setConfirmedRequests(requestMapper.toDtoList(requestsToUpdate));
+                break;
+            }
 
-            result.setRejectedRequests(requestMapper.toDtoList(requestsToUpdate));
-        }
+            case REJECTED: {
 
-        if (RequestOperationStatus.CONFIRMED.equals(requestUpdateDto.getStatus())) {
-
-            result.setConfirmedRequests(requestMapper.toDtoList(requestsToUpdate));
+                requestsToUpdate.forEach(s -> s.setStatus(REJECTED));
+                result.setConfirmedRequests(requestMapper.toDtoList(requestsToUpdate));
+                break;
+            }
         }
 
         return result;
     }
 
     @Override
-    public RequestDto rejectRequest(Long userId, Long requestId) {
+    public ParticipationRequestDto rejectRequest(Long userId, Long requestId) {
 
         Request request = requestRepository.findByRequesterAndId(userId, requestId).orElseThrow(
-                () -> {
-                    log.error("Request with id=" + requestId + " does not exist");
-                    throw new EntityExistException("Request with id=" + requestId + " does not exist");
-                });
+                () -> new EntityNotFoundException("Запрос на участие с id = " + requestId + " не найден."));
 
         request.setStatus(RequestStatus.CANCELED);
 
         return requestMapper.toDto(requestRepository.save(request));
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getRequestsOfCurrentUserByEventIdAndUserId(Long userId, Long eventId) {
+
+        return requestMapper.toDtoList(requestRepository.findAllByEventWithInitiator(userId, eventId));
+    }
+
+    private Event checkUserAndEventExist(Long userId, Long eventId) {
+
+        var event = eventRepository.findById(eventId).orElseThrow(
+                () -> new EntityNotFoundException("Событие с id=" + eventId + " не существует"));
+
+        userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("Пользователь с id " + userId  + " не найден."));
+
+        return event;
     }
 }

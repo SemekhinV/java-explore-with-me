@@ -34,6 +34,8 @@ public class StatsServiceImpl implements StatsService {
     @Override
     public List<ViewStatsDto> getHits(GetStatsDto dto) {
 
+        System.out.println();
+
         return repository.getStats(dto.getStart(), dto.getEnd(), dto.getUris(), dto.getUnique())
                 .stream()
                 .map(viewMapper::mapToDto)

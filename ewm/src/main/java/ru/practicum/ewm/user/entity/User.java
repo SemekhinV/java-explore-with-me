@@ -1,7 +1,6 @@
 package ru.practicum.ewm.user.entity;
 
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -20,18 +19,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", length = 250)
+    @Column(nullable = false, length = 250)
     private String name;
 
-    @Column(name = "email", length = 254, unique = true)
+    @Column(length = 254, unique = true, nullable = false)
     private String email;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (!(o instanceof User)) return false;
         User user = (User) o;
-        return this.getId() != null && Objects.equals(this.getId(), user.getId());
+        return Objects.equals(id, user.id) && Objects.equals(name, user.name) && Objects.equals(email, user.email);
     }
 
     @Override

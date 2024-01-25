@@ -5,36 +5,33 @@ import org.hibernate.Hibernate;
 import ru.practicum.ewm.event.entity.Event;
 
 import javax.persistence.*;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder(toBuilder = true)
 @Table(name = "compilations")
+@NamedEntityGraph(name = "compilation-with-events", attributeNodes = @NamedAttributeNode("events"))
 public class Compilation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "title", length = 50)
+    @Column(length = 50, unique = true)
     private String title;
 
-    @Column(name = "pinned")
+    @Column(nullable = false)
     private Boolean pinned;
 
-    @ManyToMany
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "events_compilations",
-            joinColumns = @JoinColumn(name = "compilation_id"),
-            inverseJoinColumns = @JoinColumn(name = "event_id"))
-    @OrderBy("eventDate")
-    @ToString.Exclude
-    private Set<Event> events;
+            joinColumns = @JoinColumn(name = "compilation_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "event_id", referencedColumnName = "id"))
+    private List<Event> events;
 
     @Override
     public boolean equals(Object o) {

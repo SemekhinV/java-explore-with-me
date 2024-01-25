@@ -1,20 +1,21 @@
 package ru.practicum.ewm.request.service;
 
-import ru.practicum.ewm.request.dto.RequestDto;
-import ru.practicum.ewm.request.dto.RequestUpdateDto;
-import ru.practicum.ewm.request.dto.RequestUpdateResponseDto;
+import ru.practicum.ewm.request.dto.EventRequestStatusUpdateRequest;
+import ru.practicum.ewm.request.dto.EventRequestStatusUpdateResult;
+import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 
 import java.util.List;
 
 public interface RequestService {
 
-    RequestDto save(Long userId, Long eventId);
+    ParticipationRequestDto save(Long userId, Long eventId);
 
-    List<RequestDto> get(Long userId);
+    List<ParticipationRequestDto> getAllUsersRequest(Long userId);
 
-    List<RequestDto> getByOwnerOfEvent(Long userId, Long eventId);
+    List<ParticipationRequestDto> getRequestsOfCurrentUserByEventIdAndUserId(Long userId, Long eventId);
 
-    RequestUpdateResponseDto updateRequest(Long userId, Long eventId, RequestUpdateDto requestUpdateDto);
+    EventRequestStatusUpdateResult updateRequestsStatusOfUserEvent(Long userId, Long eventId,
+                                                                   EventRequestStatusUpdateRequest requestUpdateDto);
 
-    RequestDto rejectRequest(Long userId, Long requestId);
+    ParticipationRequestDto rejectRequest(Long userId, Long requestId);
 }

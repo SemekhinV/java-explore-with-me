@@ -18,7 +18,5 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     List<Event> findAllByIdIn(List<Long> idIn);
 
-    Boolean existsByCategoryId(Long categoryId);
-
-    Optional<Event> findByIdAndPublishedOnIsNotNull(Long id);
+    List<Event> findAllByCategoryId(Long categoryId);
 }

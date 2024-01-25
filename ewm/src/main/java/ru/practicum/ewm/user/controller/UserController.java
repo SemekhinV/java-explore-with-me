@@ -4,7 +4,8 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import ru.practicum.ewm.user.dto.UserRequestDto;
+import ru.practicum.ewm.user.dto.NewUserRequest;
+import ru.practicum.ewm.user.dto.UserDto;
 import ru.practicum.ewm.user.service.UserService;
 
 import javax.validation.Valid;
@@ -18,19 +19,20 @@ public class UserController {
 
     private final UserService service;
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserRequestDto save(@Valid @RequestBody UserRequestDto user) {
+    @GetMapping
+    @ResponseStatus(HttpStatus.OK)
+    public List<UserDto> get(@RequestParam(required = false) List<Long> ids,
+                             @RequestParam(defaultValue = "0") Integer from,
+                             @RequestParam(defaultValue = "10") Integer size) {
 
-        return service.save(user);
+        return service.getAllUsers(ids, from, size);
     }
 
-    @GetMapping
-    public List<UserRequestDto> get(@RequestParam(required = false) List<Long> ids,
-                                    @RequestParam(defaultValue = "10") Integer size,
-                                    @RequestParam(defaultValue = "0") Integer from) {
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto save(@Valid @RequestBody NewUserRequest user) {
 
-        return service.get(ids, from, size);
+        return service.save(user);
     }
 
     @DeleteMapping("/{id}")

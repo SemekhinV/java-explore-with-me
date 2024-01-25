@@ -1,14 +1,15 @@
 package ru.practicum.ewm.user.service;
 
-import ru.practicum.ewm.user.dto.UserRequestDto;
+import ru.practicum.ewm.user.dto.NewUserRequest;
+import ru.practicum.ewm.user.dto.UserDto;
 
 import java.util.List;
 
 public interface UserService {
 
-    UserRequestDto save(UserRequestDto user);
+    List<UserDto> getAllUsers(List<Long> ids, int from, int size);
 
-    List<UserRequestDto> get(List<Long> idIn, int from, int size);
+    UserDto save(NewUserRequest user);
 
     void delete(Long id);
 }

@@ -31,7 +31,7 @@ public class StatsClient {
 
         String paramsUri = uris.stream().reduce("", (result, uri) -> result + "&uris=" + uri);
 
-        var stats = webClient.get()
+        return webClient.get()
                 .uri(uriBuilder -> uriBuilder.path("/stats")
                         .queryParam("start", start)
                         .queryParam("end", end)
@@ -42,8 +42,6 @@ public class StatsClient {
                 .bodyToFlux(ViewStatsDto.class)
                 .collectList()
                 .block();
-
-        return stats;
     }
 
     public void addStats(HitDto hitDto) {

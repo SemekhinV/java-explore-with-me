@@ -2,9 +2,9 @@ package ru.practicum.ewm.event.mapper;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import ru.practicum.ewm.event.dto.EventDto;
-import ru.practicum.ewm.event.dto.EventRequestDto;
-import ru.practicum.ewm.event.dto.ShortEvenDto;
+import ru.practicum.ewm.event.dto.EventFullDto;
+import ru.practicum.ewm.event.dto.EventShortDto;
+import ru.practicum.ewm.event.dto.NewEventDto;
 import ru.practicum.ewm.event.entity.Event;
 
 import java.util.List;
@@ -13,11 +13,12 @@ import java.util.List;
 public interface EventMapper {
 
     @Mapping(source = "category", target = "category.id")
-    Event toEvent(EventRequestDto dto);
+    @Mapping(target = "state", constant = "PENDING")
+    Event toEvent(NewEventDto dto);
 
-    EventDto toDto(Event event);
+    EventFullDto toDto(Event event);
 
-    List<ShortEvenDto> toShortDtoList(List<Event> events);
+    EventShortDto toShortDto(Event event);
 
-    List<EventDto> toDtoList(List<Event> events);
+    List<EventFullDto> toDtoList(List<Event> events);
 }

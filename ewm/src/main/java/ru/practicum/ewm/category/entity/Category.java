@@ -1,6 +1,9 @@
 package ru.practicum.ewm.category.entity;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.Objects;
@@ -8,8 +11,6 @@ import java.util.Objects;
 @Entity
 @Getter
 @Setter
-@Builder
-@ToString
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "categories")
@@ -19,7 +20,7 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", length = 50, nullable = false)
+    @Column(length = 50, nullable = false, unique = true)
     private String name;
 
     @Override
