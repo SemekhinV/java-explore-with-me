@@ -101,8 +101,7 @@ public class EventUserServiceImpl implements EventUserService {
                 result = result.stream()
                         .sorted(Comparator.comparing(EventFullDto::getEventDate))
                         .collect(Collectors.toList());
-            }
-            else {
+            } else {
 
                 result = result.stream()
                         .sorted(Comparator.comparing(EventFullDto::getViews))
