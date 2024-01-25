@@ -226,18 +226,12 @@ public class EventPrivateServiceImpl implements EventPrivateService {
 
                 result.setConfirmedRequests(requestMapper.toDtoList(requestsToUpdate));
 
-                result.setRejectedRequests(List.of());
-
-                event.setConfirmedRequests(event.getConfirmedRequests() + result.getConfirmedRequests().size());
-
                 break;
             }
 
             case REJECTED: {
 
                 requestsToUpdate.forEach(s -> s.setStatus(REJECTED));
-
-                result.setConfirmedRequests(List.of());
 
                 result.setRejectedRequests(requestMapper.toDtoList(requestsToUpdate));
 
@@ -249,6 +243,11 @@ public class EventPrivateServiceImpl implements EventPrivateService {
 
             event.setConfirmedRequests(event.getConfirmedRequests() + result.getConfirmedRequests().size());
         }
+
+        event.setConfirmedRequests(requestRepository.findAllByEvent(eventId)
+                .stream()
+                .filter(s -> RequestStatus.CONFIRMED.equals(s.getStatus()))
+                .count());
 
         repository.save(event);
 
