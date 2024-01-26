@@ -146,6 +146,6 @@ public class EventUserServiceImpl implements EventUserService {
 
     private void sendStatsForTheEvent(Long eventId, String remoteAddress, String timestamp) {
 
-        client.addStats(new HitDto(null, remoteAddress, "/events" + eventId, "main", timestamp));
+        client.addStats(new HitDto(null, remoteAddress, "/events/" + eventId, "main", timestamp));
     }
 }

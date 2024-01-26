@@ -5,11 +5,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.stats.dto.HitDto;
 import ru.practicum.stats.dto.ViewStatsDto;
-import ru.practicum.stats.server.dto.GetStatsDto;
+import ru.practicum.stats.server.error.exception.BadInputParametersException;
 import ru.practicum.stats.server.mapper.HitMapper;
 import ru.practicum.stats.server.mapper.ViewStatsMapper;
 import ru.practicum.stats.server.repository.StatsRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -32,11 +33,14 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public List<ViewStatsDto> getHits(GetStatsDto dto) {
+    public List<ViewStatsDto> getHits(LocalDateTime start, LocalDateTime end, List<String> uris, boolean unique) {
 
-        System.out.println();
+        if (start.isAfter(end)) {
 
-        return repository.getStats(dto.getStart(), dto.getEnd(), dto.getUris(), dto.getUnique())
+            throw new BadInputParametersException("вфывф");
+        }
+
+        return repository.getStats(start, end, uris, unique)
                 .stream()
                 .map(viewMapper::mapToDto)
                 .collect(Collectors.toList());
