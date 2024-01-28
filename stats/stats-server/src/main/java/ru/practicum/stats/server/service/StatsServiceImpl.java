@@ -37,7 +37,7 @@ public class StatsServiceImpl implements StatsService {
 
         if (start.isAfter(end)) {
 
-            throw new BadInputParametersException("вфывф");
+            throw new BadInputParametersException("Start date is after end date");
         }
 
         return repository.getStats(start, end, uris, unique)

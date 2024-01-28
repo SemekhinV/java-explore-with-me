@@ -6,8 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.error.exception.EntityConflictException;
 import ru.practicum.ewm.error.exception.EntityNotFoundException;
+import ru.practicum.ewm.event.dto.EventFullDto;
+import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
+import ru.practicum.ewm.request.dto.ConfirmedRequests;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.entity.Request;
 import ru.practicum.ewm.request.enums.RequestStatus;
@@ -17,6 +20,7 @@ import ru.practicum.ewm.user.repository.UserRepository;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.time.LocalDateTime.now;
 import static ru.practicum.ewm.event.enums.EventState.PUBLISHED;
@@ -29,7 +33,7 @@ import static ru.practicum.ewm.request.enums.RequestStatus.PENDING;
 @AllArgsConstructor
 public class RequestServiceImpl implements RequestService {
 
-    private final RequestRepository requestRepository;
+    private final RequestRepository repository;
 
     private final EventRepository eventRepository;
 
@@ -44,13 +48,13 @@ public class RequestServiceImpl implements RequestService {
                 () -> new EntityNotFoundException("Пользователь с id = " + userId + " не найден."));
 
 
-        return requestMapper.toDtoList(requestRepository.findAllByRequester(userId));
+        return requestMapper.toDtoList(repository.findAllByRequester(userId));
     }
 
     @Override
     public ParticipationRequestDto save(Long userId, Long eventId) {
 
-        if (requestRepository.existsByRequesterAndEvent(userId, eventId)) {
+        if (repository.existsByRequesterAndEvent(userId, eventId)) {
 
             throw new EntityConflictException("Данный пользователь уже оставил запрос на участие в указанном событии.");
         }
@@ -67,7 +71,7 @@ public class RequestServiceImpl implements RequestService {
             throw new EntityConflictException("Выбранное событие еще не опубликовано");
         }
 
-        List<Request> requests = requestRepository.findAllByEvent(eventId);
+        List<Request> requests = repository.findAllByEvent(eventId);
 
         if (!event.getRequestModeration() && requests.size() >= event.getParticipantLimit()) {
 
@@ -78,18 +82,18 @@ public class RequestServiceImpl implements RequestService {
                 PENDING
                 : CONFIRMED, eventId, userId, now());
 
-        return requestMapper.toDto(requestRepository.save(result));
+        return requestMapper.toDto(repository.save(result));
     }
 
     @Override
     public ParticipationRequestDto rejectRequest(Long userId, Long requestId) {
 
-        Request request = requestRepository.findByRequesterAndId(userId, requestId).orElseThrow(
+        Request request = repository.findByRequesterAndId(userId, requestId).orElseThrow(
                 () -> new EntityNotFoundException("Запрос на участие с id = " + requestId + " не найден."));
 
         request.setStatus(RequestStatus.CANCELED);
 
-        return requestMapper.toDto(requestRepository.save(request));
+        return requestMapper.toDto(repository.save(request));
     }
 
     private Event checkUserAndEventExist(Long userId, Long eventId) {
@@ -101,5 +105,61 @@ public class RequestServiceImpl implements RequestService {
                 () -> new EntityNotFoundException("Пользователь с id " + userId  + " не найден."));
 
         return event;
+    }
+
+    @Override
+    public void setConfirmedRequestCountFull(List<EventFullDto> events) {
+
+        var confirmedRequests = repository.getConfirmedRequestsCount(getIdsFull(events));
+
+        events.forEach(event -> setRequestCount(event, confirmedRequests));
+    }
+
+    @Override
+    public void setConfirmedRequestCountShort(List<EventShortDto> events) {
+
+        var confirmedRequests = repository.getConfirmedRequestsCount(getIdsShort(events));
+
+        events.forEach(event -> setRequestCount(event, confirmedRequests));
+    }
+
+    private List<Long> getIdsFull(List<EventFullDto> events) {
+
+        return events.stream().map(EventFullDto::getId).collect(Collectors.toList());
+    }
+
+    private List<Long> getIdsShort(List<EventShortDto> events) {
+
+        return events.stream().map(EventShortDto::getId).collect(Collectors.toList());
+    }
+
+    private void setRequestCount(EventFullDto event, List<ConfirmedRequests> requests) {
+
+        var requestCount = requests.stream()
+                .filter(s -> s.getEventId().equals(event.getId()))
+                .collect(Collectors.toList());
+
+        if (requestCount.isEmpty()) {
+
+            event.setConfirmedRequests(0L);
+        } else {
+
+            event.setConfirmedRequests(requestCount.get(0).getRequestsCount());
+        }
+    }
+
+    private void setRequestCount(EventShortDto event, List<ConfirmedRequests> requests) {
+
+        var requestCount = requests.stream()
+                .filter(s -> s.getEventId().equals(event.getId()))
+                .collect(Collectors.toList());
+
+        if (requestCount.isEmpty()) {
+
+            event.setConfirmedRequests(0L);
+        } else {
+
+            event.setConfirmedRequests(requestCount.get(0).getRequestsCount());
+        }
     }
 }

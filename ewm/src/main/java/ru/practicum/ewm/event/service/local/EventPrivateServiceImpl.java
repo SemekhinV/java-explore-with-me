@@ -1,9 +1,11 @@
 package ru.practicum.ewm.event.service.local;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang.math.NumberUtils;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import ru.practicum.ewm.category.repository.CategoryRepository;
 import ru.practicum.ewm.error.exception.BadInputParametersException;
 import ru.practicum.ewm.error.exception.EntityConflictException;
@@ -25,18 +27,21 @@ import ru.practicum.ewm.request.entity.Request;
 import ru.practicum.ewm.request.enums.RequestStatus;
 import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.repository.RequestRepository;
+import ru.practicum.ewm.request.service.RequestService;
 import ru.practicum.ewm.user.repository.UserRepository;
 import ru.practicum.stats.client.StatsClient;
+import ru.practicum.stats.dto.ViewStatsDto;
 
 import javax.persistence.EntityExistsException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
-import static ru.practicum.ewm.request.enums.RequestOperationStatus.CONFIRMED;
 import static ru.practicum.ewm.request.enums.RequestStatus.PENDING;
 import static ru.practicum.ewm.request.enums.RequestStatus.REJECTED;
+import static ru.practicum.ewm.util.EwmPatterns.URI;
 import static ru.practicum.ewm.util.TimeFormatter.DATE_TIME_FORMATTER;
 
 @Service
@@ -59,6 +64,8 @@ public class EventPrivateServiceImpl implements EventPrivateService {
     private final RequestRepository requestRepository;
 
     private final RequestMapper requestMapper;
+
+    private final RequestService requestService;
 
     @Override
     public EventFullDto save(Long userId, NewEventDto dto) {
@@ -85,11 +92,11 @@ public class EventPrivateServiceImpl implements EventPrivateService {
         event.setLocation(location);
         event.setCategory(category);
         event.setInitiator(user);
-        event.setConfirmedRequests(0L);
 
         var result = mapper.toDto(repository.save(event));
 
         result.setViews(0L);
+        result.setConfirmedRequests(0L);
 
         return result;
     }
@@ -112,22 +119,24 @@ public class EventPrivateServiceImpl implements EventPrivateService {
 
         result.setViews(getViews(event));
 
+        requestService.setConfirmedRequestCountFull(List.of(result));
+
         return result;
     }
 
     @Override
-    public EventFullDto updateCurrentUserEventByEventId(Long userId, Long eventId, UpdateEventUserRequest updateDto) {
+    public EventFullDto updateCurrentUserEventByEventId(UpdateEventUserRequest dto) {
 
-        var event = checkEventAndUserExist(userId, eventId);
+        var event = checkEventAndUserExist(dto.getUserId(), dto.getEventId());
 
         if (event.getState().equals(EventState.PUBLISHED)) {
 
             throw new EntityConflictException("Опубликованное событие невозможно редактировать.");
         }
 
-        if (updateDto.getStateAction() != null) {
+        if (dto.getStateAction() != null) {
 
-            switch (updateDto.getStateAction()) {
+            switch (dto.getStateAction()) {
 
                 case SEND_TO_REVIEW:
                     event.setState(EventState.PENDING);
@@ -142,17 +151,17 @@ public class EventPrivateServiceImpl implements EventPrivateService {
             }
         }
 
-        if (updateDto.getCategory() != null) {
+        if (dto.getCategory() != null) {
 
-            var category = categoryRepository.findById(updateDto.getCategory()).orElseThrow(
+            var category = categoryRepository.findById(dto.getCategory()).orElseThrow(
                     () -> new EntityExistsException("Указанная категория не найдена."));
 
             event.setCategory(category);
         }
 
-        if (updateDto.getEventDate() != null) {
+        if (dto.getEventDate() != null) {
 
-            LocalDateTime eventTime = updateDto.getEventDate();
+            LocalDateTime eventTime = dto.getEventDate();
 
             if (eventTime.isBefore(LocalDateTime.now().plusHours(2))) {
 
@@ -160,19 +169,21 @@ public class EventPrivateServiceImpl implements EventPrivateService {
                         + " два часа от текущего момента");
             }
 
-            event.setEventDate(updateDto.getEventDate());
+            event.setEventDate(dto.getEventDate());
         }
 
-        if (updateDto.getLocation() != null) {
+        if (dto.getLocation() != null) {
 
-            event.setLocation(getLocation(updateDto));
+            event.setLocation(getLocation(dto));
         }
 
-        updateEventValues(event, updateDto);
+        updateEventValues(event, dto);
 
         var result = mapper.toDto(repository.save(event));
 
         result.setViews(getViews(event));
+
+        requestService.setConfirmedRequestCountFull(List.of(result));
 
         return result;
     }
@@ -188,37 +199,37 @@ public class EventPrivateServiceImpl implements EventPrivateService {
     }
 
     @Override
-    public EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId,
-                                                              EventRequestStatusUpdateRequest updateDto) {
+    public EventRequestStatusUpdateResult updateRequestStatus(EventRequestStatusUpdateRequest dto) {
 
-
-        var event = checkEventAndUserExist(userId, eventId);
+        var event = checkEventAndUserExist(dto.getUserId(), dto.getEventId());
 
         if (event.getParticipantLimit() == 0 || !event.getRequestModeration()) {
 
             throw new EntityConflictException("Подтверждение заявок не требуется.");
         }
 
-        if (event.getParticipantLimit().equals(event.getConfirmedRequests())) {
+        var confirmedRequest = requestRepository.getEventConfirmedRequestCount(event.getId());
+
+        if (event.getParticipantLimit().equals(confirmedRequest)) {
 
             throw new EntityConflictException("Достигнут лимит по заявкам.");
         }
 
-        List<Request> requestsToUpdate = requestRepository.findAllByIdIn(updateDto.getRequestIds());
+        List<Request> requestsToUpdate = requestRepository.findAllByIdIn(dto.getRequestIds());
 
         if (requestsToUpdate.stream().anyMatch(request -> !PENDING.equals(request.getStatus()))) {
 
             throw new EntityConflictException("Статус можно изменить только у заявок, находящихся в состоянии ожидания");
         }
 
-        if (event.getParticipantLimit() - event.getConfirmedRequests() <= 0) {
+        if (event.getParticipantLimit() - confirmedRequest <= 0) {
 
             requestsToUpdate.forEach(s -> s.setStatus(RequestStatus.REJECTED));
         }
 
         var result = new EventRequestStatusUpdateResult();
 
-        switch (updateDto.getStatus()) {
+        switch (dto.getStatus()) {
 
             case CONFIRMED: {
 
@@ -238,16 +249,6 @@ public class EventPrivateServiceImpl implements EventPrivateService {
                 break;
             }
         }
-
-        if (CONFIRMED.equals(updateDto.getStatus())) {
-
-            event.setConfirmedRequests(event.getConfirmedRequests() + result.getConfirmedRequests().size());
-        }
-
-        event.setConfirmedRequests(requestRepository.findAllByEvent(eventId)
-                .stream()
-                .filter(s -> RequestStatus.CONFIRMED.equals(s.getStatus()))
-                .count());
 
         repository.save(event);
 
@@ -281,7 +282,6 @@ public class EventPrivateServiceImpl implements EventPrivateService {
         return locationRepository.findByLatAndLon(lat, lon).orElseGet(
                 () -> locationRepository.save(new Location(null, lat, lon)));
     }
-
 
     private void updateEventValues(Event event, UpdateEventUserRequest dto) {
 
@@ -336,25 +336,67 @@ public class EventPrivateServiceImpl implements EventPrivateService {
 
     private List<EventShortDto> mapToShortDtoAndAddView(List<Event> events) {
 
-        return events.stream().map(this::mapToShortWithViews).collect(Collectors.toList());
+        var result = setViews(events);
+
+        requestService.setConfirmedRequestCountShort(result);
+
+        return result;
     }
 
-    private EventShortDto mapToShortWithViews(Event event) {
+    private List<EventShortDto> setViews(List<Event> events) {
 
-        var start = event.getCreatedOn() == null ?
-                LocalDateTime.now().format(DATE_TIME_FORMATTER)
-                : event.getCreatedOn().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        var start = LocalDateTime.now();
 
         var end = LocalDateTime.now().format(DATE_TIME_FORMATTER);
 
-        var uris = List.of("/events/" + event.getId());
+        var uris = new ArrayList<String>();
 
-        var stats = client.getStats(start, end, uris, true);
+        for (var event : events) {
 
-        var shotDto = mapper.toShortDto(event);
+            if (event.getCreatedOn() != null && event.getCreatedOn().isBefore(start)) {
 
-        shotDto.setViews(!stats.isEmpty() ? stats.get(0).getHits() : 0L);
+                start = event.getCreatedOn();
+            }
 
-        return shotDto;
+            uris.add(URI + event.getId());
+        }
+
+        var result = mapper.toShortDtoList(events);
+
+        var stats = client.getStats(start.format(DATE_TIME_FORMATTER), end, uris, true);
+
+        if (stats.isEmpty()) {
+
+            result.forEach(event -> event.setViews(0L));
+        }
+
+        var viewMap = getViewsMap(stats);
+
+        result.forEach(event -> {
+
+            if (viewMap.getOrDefault(event.getId(), 0L) != 0) {
+
+                event.setViews(viewMap.get(event.getId()));
+            }
+        });
+
+        return result;
+    }
+
+    private Map<Long, Long> getViewsMap(List<ViewStatsDto> stats) {
+
+        var map = new HashMap<Long, Long>();
+
+        for (var stat : stats) {
+
+            map.put(getEventIdFromStats(stat.getUri()), stat.getHits());
+        }
+
+        return map;
+    }
+
+    private Long getEventIdFromStats(String uri) {
+
+        return NumberUtils.toLong(StringUtils.replace(uri, URI, ""));
     }
 }

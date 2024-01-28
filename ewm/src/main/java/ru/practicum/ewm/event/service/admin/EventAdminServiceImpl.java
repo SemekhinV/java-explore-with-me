@@ -1,28 +1,35 @@
 package ru.practicum.ewm.event.service.admin;
 
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang.math.NumberUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import ru.practicum.ewm.category.repository.CategoryRepository;
 import ru.practicum.ewm.error.exception.BadInputParametersException;
 import ru.practicum.ewm.error.exception.EntityConflictException;
 import ru.practicum.ewm.error.exception.EntityNotFoundException;
+import ru.practicum.ewm.event.dto.EventAdminFilters;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.entity.Location;
-import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.event.repository.EventSearchingProvider;
 import ru.practicum.ewm.event.repository.LocationRepository;
+import ru.practicum.ewm.request.service.RequestService;
 import ru.practicum.stats.client.StatsClient;
+import ru.practicum.stats.dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static ru.practicum.ewm.event.enums.EventState.*;
+import static ru.practicum.ewm.util.EwmPatterns.URI;
 import static ru.practicum.ewm.util.TimeFormatter.DATE_TIME_FORMATTER;
 
 @Service
@@ -42,21 +49,18 @@ public class EventAdminServiceImpl implements EventAdminService {
 
     private final LocationRepository locationRepository;
 
-    @Override
-    public List<EventFullDto> getWithParametersByAdmin(List<Long> users,
-                                                       List<EventState> states,
-                                                       List<Long> categories,
-                                                       LocalDateTime rangeStart,
-                                                       LocalDateTime rangeEnd,
-                                                       Integer from,
-                                                       Integer size) {
+    private final RequestService requestService;
 
-        if (rangeEnd != null && rangeStart != null && rangeStart.isAfter(rangeEnd)) {
+    @Override
+    public List<EventFullDto> getWithParametersByAdmin(EventAdminFilters filters) {
+
+        if (filters.getRangeEnd() != null && filters.getRangeStart() != null
+                && filters.getRangeStart().isAfter(filters.getRangeEnd())) {
 
             throw new BadInputParametersException("Время окончания не может быть раньше времени начала.");
         }
 
-        var events = searchingProvider.getAdminFilters(users, states, categories, rangeStart, rangeEnd, from, size);
+        var events = searchingProvider.getAdminFilters(filters);
 
         if (events.isEmpty()) {
 
@@ -65,16 +69,18 @@ public class EventAdminServiceImpl implements EventAdminService {
 
         var result = mapper.toDtoList(events);
 
-        result.forEach(event -> event.setViews(getViews(event)));
+        setViews(result);
+
+        requestService.setConfirmedRequestCountFull(result);
 
         return result;
     }
 
     @Override
-    public EventFullDto editEventByAdmin(Long eventId, UpdateEventAdminRequest dto) {
+    public EventFullDto editEventByAdmin(UpdateEventAdminRequest dto) {
 
-        var event = repository.findById(eventId).orElseThrow(
-                () -> new EntityNotFoundException("Событие с id = " + eventId + " не найдено."));
+        var event = repository.findById(dto.getId()).orElseThrow(
+                () -> new EntityNotFoundException("Событие с id = " + dto.getId() + " не найдено."));
 
         if (dto.getEventDate() != null && dto.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
 
@@ -127,7 +133,9 @@ public class EventAdminServiceImpl implements EventAdminService {
 
         var result = mapper.toDto(repository.save(event));
 
-        result.setViews(getViews(result));
+        result.setViews(getView(result));
+
+        requestService.setConfirmedRequestCountFull(List.of(result));
 
         return result;
     }
@@ -165,7 +173,60 @@ public class EventAdminServiceImpl implements EventAdminService {
         }
     }
 
-    private Long getViews(EventFullDto event) {
+    private void setViews(List<EventFullDto> events) {
+
+        var start = LocalDateTime.now();
+
+        var end = LocalDateTime.now().format(DATE_TIME_FORMATTER);
+
+        var uris = new ArrayList<String>();
+
+        for (var event : events) {
+
+            if (event.getCreatedOn() != null && event.getCreatedOn().isBefore(start)) {
+
+                start = event.getCreatedOn();
+            }
+
+            uris.add(URI + event.getId());
+        }
+
+        var stats = client.getStats(start.format(DATE_TIME_FORMATTER), end, uris, true);
+
+        if (stats.isEmpty()) {
+
+            events.forEach(event -> event.setViews(0L));
+        }
+
+        var viewMap = getViewsMap(stats);
+
+        events.forEach(event -> {
+
+            if (viewMap.getOrDefault(event.getId(), 0L) != 0) {
+
+                event.setViews(viewMap.get(event.getId()));
+            }
+        });
+    }
+
+    private Map<Long, Long> getViewsMap(List<ViewStatsDto> stats) {
+
+        var map = new HashMap<Long, Long>();
+
+        for (var stat : stats) {
+
+            map.put(getEventIdFromStats(stat.getUri()), stat.getHits());
+        }
+
+        return map;
+    }
+
+    private Long getEventIdFromStats(String uri) {
+
+        return NumberUtils.toLong(StringUtils.replace(uri, URI, ""));
+    }
+
+    private Long getView(EventFullDto event) {
 
         var start = event.getCreatedOn() == null ?
                 LocalDateTime.now().format(DATE_TIME_FORMATTER)

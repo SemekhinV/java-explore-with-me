@@ -1,7 +1,6 @@
 package ru.practicum.ewm.event.entity;
 
 import lombok.*;
-import org.hibernate.Hibernate;
 import ru.practicum.ewm.category.entity.Category;
 import ru.practicum.ewm.event.enums.EventState;
 import ru.practicum.ewm.user.entity.User;
@@ -35,7 +34,7 @@ public class Event {
     @Column(nullable = false, length = 7000)
     private String description;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
@@ -62,9 +61,6 @@ public class Event {
     @Column(name = "request_moderation")
     private Boolean requestModeration;
 
-    @Column(name = "confirmed_requests")
-    private Long confirmedRequests;
-
     @Column
     @Enumerated(EnumType.STRING)
     private EventState state;
@@ -72,14 +68,28 @@ public class Event {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        if (!(o instanceof Event)) return false;
         Event event = (Event) o;
-        return this.getId() != null && Objects.equals(this.getId(), event.getId());
+        return Objects.equals(id, event.id)
+                && Objects.equals(annotation, event.annotation)
+                && Objects.equals(title, event.title)
+                && Objects.equals(createdOn, event.createdOn)
+                && Objects.equals(description, event.description)
+                && Objects.equals(category, event.category)
+                && Objects.equals(eventDate, event.eventDate)
+                && Objects.equals(initiator, event.initiator)
+                && Objects.equals(location, event.location)
+                && Objects.equals(paid, event.paid)
+                && Objects.equals(participantLimit, event.participantLimit)
+                && Objects.equals(publishedOn, event.publishedOn)
+                && Objects.equals(requestModeration, event.requestModeration)
+                && state == event.state;
     }
 
     @Override
     public int hashCode() {
-        return getClass().hashCode();
+        return Objects.hash(id, annotation, title, createdOn, description, category, eventDate, initiator, location,
+                paid, participantLimit, publishedOn, requestModeration, state);
     }
 }
 

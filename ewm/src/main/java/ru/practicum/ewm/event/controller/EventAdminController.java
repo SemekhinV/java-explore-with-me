@@ -1,10 +1,13 @@
 package ru.practicum.ewm.event.controller;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewm.error.exception.BadInputParametersException;
+import ru.practicum.ewm.event.dto.EventAdminFilters;
 import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.UpdateEventAdminRequest;
 import ru.practicum.ewm.event.enums.EventState;
@@ -16,8 +19,10 @@ import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static ru.practicum.ewm.util.EwmPatterns.EVENT_REQUEST;
 import static ru.practicum.ewm.util.TimeFormatter.DATE_TIME_FORMAT;
 
+@Slf4j
 @Validated
 @RestController
 @AllArgsConstructor
@@ -38,7 +43,16 @@ public class EventAdminController {
                                         @RequestParam(required = false) @DateTimeFormat(pattern = DATE_TIME_FORMAT)
                                             LocalDateTime rangeEnd) {
 
-        return service.getWithParametersByAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
+        log.info(EVENT_REQUEST, "get with parameters by admin");
+
+        if (rangeEnd != null && rangeStart != null && rangeStart.isAfter(rangeEnd)) {
+
+            throw new BadInputParametersException("Время окончания не может быть раньше времени начала.");
+        }
+
+        var filters = new EventAdminFilters(size ,from, categories, states, rangeStart, users, rangeEnd);
+
+        return service.getWithParametersByAdmin(filters);
     }
 
     @PatchMapping("/{eventId}")
@@ -46,6 +60,10 @@ public class EventAdminController {
     public EventFullDto updateEvent(@Valid @RequestBody UpdateEventAdminRequest dto,
                                     @PathVariable Long eventId) {
 
-        return service.editEventByAdmin(eventId, dto);
+        log.info(EVENT_REQUEST, "get update by admin");
+
+        dto.setId(eventId);
+
+        return service.editEventByAdmin(dto);
     }
 }

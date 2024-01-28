@@ -10,5 +10,5 @@ public interface CompilationAdminService {
 
     void delete(Long compId);
 
-    CompilationDto update(Long compId, UpdateCompilationRequest dto);
+    CompilationDto update(UpdateCompilationRequest dto);
 }

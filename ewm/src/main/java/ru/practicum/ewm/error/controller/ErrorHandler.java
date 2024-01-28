@@ -1,5 +1,6 @@
 package ru.practicum.ewm.error.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -13,6 +14,7 @@ import ru.practicum.ewm.error.response.ApiError;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+@Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
 
@@ -20,6 +22,8 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError entityNotFound(final EntityNotFoundException e) {
+
+        log.error(e.getMessage());
 
         return ApiError.builder()
                 .status("NOT_FOUND")
@@ -34,6 +38,8 @@ public class ErrorHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError entityAlreadyExist(final BadInputParametersException e) {
 
+        log.error(e.getMessage());
+
         return ApiError.builder()
                 .status("BAD_REQUEST")
                 .reason("Incorrect input parameters")
@@ -46,6 +52,8 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError categoryAlreadyExist(final EntityConflictException e) {
+
+        log.error(e.getMessage());
 
         return ApiError.builder()
                 .status("CONFLICT")

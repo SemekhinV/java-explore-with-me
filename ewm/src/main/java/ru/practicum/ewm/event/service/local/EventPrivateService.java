@@ -18,10 +18,9 @@ public interface EventPrivateService {
 
     EventFullDto getCurrentUserEventByEventId(Long userId, Long eventId);
 
-    EventFullDto updateCurrentUserEventByEventId(Long userId, Long eventId, UpdateEventUserRequest updateDto);
+    EventFullDto updateCurrentUserEventByEventId(UpdateEventUserRequest updateDto);
 
     List<ParticipationRequestDto> getRequestsOfCurrentUserByEventIdAndUserId(Long userId, Long eventId);
 
-    EventRequestStatusUpdateResult updateRequestStatus(Long userId, Long eventId,
-                                                       EventRequestStatusUpdateRequest updateDto);
+    EventRequestStatusUpdateResult updateRequestStatus(EventRequestStatusUpdateRequest updateDto);
 }

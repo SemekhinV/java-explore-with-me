@@ -7,7 +7,7 @@ public interface CategoryAdminService {
 
     CategoryDto save(NewCategoryDto newCategoryDto);
 
-    CategoryDto update(Long catId, CategoryDto categoryDto);
+    CategoryDto update(CategoryDto categoryDto);
 
     void delete(Long catId);
 }

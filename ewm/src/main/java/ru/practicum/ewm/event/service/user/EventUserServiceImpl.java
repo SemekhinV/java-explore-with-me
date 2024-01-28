@@ -4,14 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.ewm.error.exception.BadInputParametersException;
 import ru.practicum.ewm.error.exception.EntityNotFoundException;
 import ru.practicum.ewm.event.dto.EventFullDto;
+import ru.practicum.ewm.event.dto.EventPublicFilters;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.enums.EventSortState;
 import ru.practicum.ewm.event.mapper.EventMapper;
 import ru.practicum.ewm.event.repository.EventRepository;
 import ru.practicum.ewm.event.repository.EventSearchingProvider;
+import ru.practicum.ewm.request.service.RequestService;
 import ru.practicum.stats.client.StatsClient;
 import ru.practicum.stats.dto.HitDto;
 
@@ -39,6 +40,8 @@ public class EventUserServiceImpl implements EventUserService {
 
     private final EventSearchingProvider provider;
 
+    private final RequestService requestService;
+
     @Override
     @Transactional(readOnly = true)
     public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
@@ -55,30 +58,18 @@ public class EventUserServiceImpl implements EventUserService {
 
         addView(result);
 
-        sendStats(List.of(result), request);
+        sendStats(request);
+
+        requestService.setConfirmedRequestCountFull(List.of(result));
 
         return result;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<EventFullDto> getWithParametersByUser(String text,
-                                                      List<Long> categories,
-                                                      Boolean paid,
-                                                      LocalDateTime rangeStart,
-                                                      LocalDateTime rangeEnd,
-                                                      Boolean available,
-                                                      EventSortState sort,
-                                                      Integer from,
-                                                      Integer size,
-                                                      HttpServletRequest request) {
+    public List<EventFullDto> getWithParametersByUser(EventPublicFilters filters) {
 
-        if (rangeEnd != null && rangeStart != null && rangeStart.isAfter(rangeEnd)) {
-
-            throw new BadInputParametersException("Время окончания не может быть раньше времени начала.");
-        }
-
-        var events = provider.getUserFilters(size, from, categories, rangeStart, rangeEnd, paid, text);
+        var events = provider.getUserFilters(filters);
 
         var result = mapper.toDtoList(events);
 
@@ -87,16 +78,18 @@ public class EventUserServiceImpl implements EventUserService {
             return new ArrayList<>();
         }
 
-        if (available != null) {
+        requestService.setConfirmedRequestCountFull(result);
+
+        if (filters.getAvailable() != null) {
 
             result = result.stream()
                     .filter(event -> event.getConfirmedRequests() < event.getParticipantLimit())
                     .collect(Collectors.toList());
         }
 
-        if (sort != null) {
+        if (filters.getSort() != null) {
 
-            if (EventSortState.EVENT_DATE.equals(sort)) {
+            if (EventSortState.EVENT_DATE.equals(filters.getSort())) {
 
                 result = result.stream()
                         .sorted(Comparator.comparing(EventFullDto::getEventDate))
@@ -109,7 +102,7 @@ public class EventUserServiceImpl implements EventUserService {
             }
         }
 
-        sendStats(result, request);
+        sendStats(filters.getRequest());
 
         return result;
     }
@@ -133,19 +126,13 @@ public class EventUserServiceImpl implements EventUserService {
         }
     }
 
-    private void sendStats(List<EventFullDto> events, HttpServletRequest request) {
+    private void sendStats(HttpServletRequest request) {
 
         var now = LocalDateTime.now().format(DATE_TIME_FORMATTER);
 
-        var requestDto = new HitDto(null, request.getRemoteAddr(), "/events", "main", now);
+        var requestDto = new HitDto(null, request.getRemoteAddr(), request.getRequestURI(), "ewm-main-service",
+                now);
 
         client.addStats(requestDto);
-
-        events.forEach(event -> sendStatsForTheEvent(event.getId(), request.getRemoteAddr(), now));
-    }
-
-    private void sendStatsForTheEvent(Long eventId, String remoteAddress, String timestamp) {
-
-        client.addStats(new HitDto(null, remoteAddress, "/events/" + eventId, "main", timestamp));
     }
 }

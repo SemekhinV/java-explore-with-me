@@ -46,10 +46,10 @@ public class CompilationAdminServiceImpl implements CompilationAdminService {
     }
 
     @Override
-    public CompilationDto update(Long compId, UpdateCompilationRequest dto) {
+    public CompilationDto update(UpdateCompilationRequest dto) {
 
-        var compilation = repository.findById(compId).orElseThrow(
-                () -> new EntityNotFoundException("Подборки с id = " + compId + " не существует"));
+        var compilation = repository.findById(dto.getId()).orElseThrow(
+                () -> new EntityNotFoundException("Подборки с id = " + dto.getId() + " не существует"));
 
         if (dto.getTitle() != null) {
 

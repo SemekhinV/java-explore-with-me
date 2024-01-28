@@ -14,6 +14,8 @@ import java.util.List;
 @AllArgsConstructor
 public class UpdateCompilationRequest {
 
+    private Long id;
+
     @Size(min = 1, max = 50, message = "Размер заголовка должен составлять от 1 до 50 символов")
     private String title;
 
