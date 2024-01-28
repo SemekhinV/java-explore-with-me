@@ -50,7 +50,7 @@ public class EventAdminController {
             throw new BadInputParametersException("Время окончания не может быть раньше времени начала.");
         }
 
-        var filters = new EventAdminFilters(size ,from, categories, states, rangeStart, users, rangeEnd);
+        var filters = new EventAdminFilters(size, from, categories, states, rangeStart, users, rangeEnd);
 
         return service.getWithParametersByAdmin(filters);
     }
