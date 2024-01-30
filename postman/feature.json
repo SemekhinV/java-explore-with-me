@@ -337,9 +337,9 @@
 									"",
 									"pm.test(\"Данные в запросе должны соответствовать данным в ответе\", function() {",
 									"",
-									"    pm.expect(target.user.id).eq(userId, \"Comment user id must be \" + userId);",
-									"    pm.expect(target.event.id).eq(eventId, \"Comment event id must be \" + eventId);",
-									"    pm.expect(target.id).eq(commentId, \"Comment id must be \" + commentId);",
+									"    pm.expect(target.user.id).eq(userId.toString(), \"Comment user id must be \" + userId.toString());",
+									"    pm.expect(target.event.id).eq(eventId.toString(), \"Comment event id must be \" + eventId.toString());",
+									"    pm.expect(target.id).eq(commentId.toString(), \"Comment id must be \" + commentId.toString());",
 									"    pm.expect(target.text).eq(source.text, \"Comment text must be \" + source.text);",
 									"});"
 								],
