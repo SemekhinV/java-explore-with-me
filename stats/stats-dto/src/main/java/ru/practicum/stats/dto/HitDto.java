@@ -1,9 +1,6 @@
 package ru.practicum.stats.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import javax.validation.constraints.NotBlank;
 
@@ -11,6 +8,7 @@ import javax.validation.constraints.NotBlank;
 @Setter
 @Builder
 @ToString
+@AllArgsConstructor
 public class HitDto {
 
     private Long id;
