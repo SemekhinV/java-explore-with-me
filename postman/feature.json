@@ -339,7 +339,7 @@
 									"",
 									"    pm.expect(target.user.id).eq(userId.toString(), \"Comment user id must be \" + userId.toString());",
 									"    pm.expect(target.event.id).eq(eventId.toString(), \"Comment event id must be \" + eventId.toString());",
-									"    pm.expect(target.id.toString()).eq(commentId.toString(), \"Comment id must be \" + commentId);",
+									"    pm.expect(target.id.toString()).eq(commentId.toString(), \"Comment id must be \" + commentId.toString());",
 									"    pm.expect(target.text).eq(source.text, \"Comment text must be \" + source.text);",
 									"});"
 								],
