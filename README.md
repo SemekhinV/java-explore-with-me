@@ -5,3 +5,4 @@ Template repository for ExploreWithMe project.
 Василий Семехин
 
 # github PR
+https://github.com/SemekhinV/java-explore-with-me/pull/5
