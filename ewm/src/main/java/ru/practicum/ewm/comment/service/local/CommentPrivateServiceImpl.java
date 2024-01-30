@@ -16,6 +16,8 @@ import ru.practicum.ewm.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static ru.practicum.ewm.event.enums.EventState.PUBLISHED;
+
 @Service
 @Transactional
 @AllArgsConstructor
@@ -43,6 +45,11 @@ public class CommentPrivateServiceImpl implements CommentPrivateService {
             throw new EntityNotFoundException("Выбранное событие не принадлежит указанному пользователю.");
         }
 
+        if (!event.getState().equals(PUBLISHED)) {
+
+            throw new EntityConflictException("Невозможно добавить комментарий к неопубликованному событию.");
+        }
+
         var comment = new Comment(null, event, user, newCommentDto.getText(), LocalDateTime.now(), null);
 
         return mapper.toDto(repository.save(comment));
@@ -51,7 +58,7 @@ public class CommentPrivateServiceImpl implements CommentPrivateService {
     @Override
     public CommentResponseDto update(NewCommentDto commentDto) {
 
-        var comment = checkUserAndCommentExist(commentDto.getId(), commentDto.getUserId());
+        var comment = checkUserAndCommentExist(commentDto.getUserId(), commentDto.getId());
 
         if (!commentDto.getText().isEmpty()) {
 
@@ -64,9 +71,12 @@ public class CommentPrivateServiceImpl implements CommentPrivateService {
     }
 
     @Override
-    public void delete(Long commentId, Long userId) {
+    public void delete(Long commentId, Long userId, Long eventId) {
 
         checkUserAndCommentExist(userId, commentId);
+
+        eventRepository.findById(eventId).orElseThrow(
+                () -> new EntityNotFoundException("Событие с id=" + eventId + " не существует"));
 
         repository.deleteById(commentId);
     }
@@ -80,18 +90,18 @@ public class CommentPrivateServiceImpl implements CommentPrivateService {
         userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("Пользователь с id " + userId  + " не найден."));
 
-        var comments = repository.findAllByEventIdAndUserIdOrderByIdAsc(userId, eventId);
+        var comments = repository.findAllByEventIdAndUserIdOrderByIdAsc(eventId, userId);
 
         return mapper.toDtoList(comments);
     }
 
     private Comment checkUserAndCommentExist(Long userId, Long commentId) {
 
-        var comment = repository.findById(commentId).orElseThrow(
-                () -> new EntityNotFoundException("Комментарий с id = " + commentId + " не найден."));
-
         var user = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("Пользователь с id " + userId  + " не найден."));
+
+        var comment = repository.findById(commentId).orElseThrow(
+                () -> new EntityNotFoundException("Комментарий с id = " + commentId + " не найден."));
 
         if (!comment.getUser().equals(user)) {
 

@@ -11,7 +11,7 @@ public interface CommentPrivateService {
 
     CommentResponseDto update(NewCommentDto commentDto);
 
-    void delete(Long commentId, Long userId);
+    void delete(Long commentId, Long userId, Long eventId);
 
     List<CommentResponseDto> getAllUserCommentsToEvent(Long userId, Long eventId);
 }

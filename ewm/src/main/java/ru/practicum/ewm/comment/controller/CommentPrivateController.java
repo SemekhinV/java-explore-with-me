@@ -52,11 +52,13 @@ public class CommentPrivateController {
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/events/{eventId}/comments/{commentId}")
-    public void delete(@PathVariable @NotNull Long commentId, @PathVariable @NotNull Long userId) {
+    public void delete(@PathVariable @NotNull Long commentId,
+                       @PathVariable @NotNull Long userId,
+                       @PathVariable @NotNull Long eventId) {
 
         log.info(COMMENT_REQUEST, "delete user comment");
 
-        service.delete(commentId, userId);
+        service.delete(commentId, userId, eventId);
     }
 
     @ResponseStatus(HttpStatus.OK)

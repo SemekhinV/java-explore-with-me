@@ -12,7 +12,6 @@ import ru.practicum.ewm.user.service.UserService;
 import javax.validation.Valid;
 import java.util.List;
 
-import static ru.practicum.ewm.util.EwmPatterns.EVENT_REQUEST;
 import static ru.practicum.ewm.util.EwmPatterns.USER_REQUEST;
 
 @Slf4j
@@ -39,7 +38,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto save(@Valid @RequestBody NewUserRequest user) {
 
-        log.info(EVENT_REQUEST, "create");
+        log.info(USER_REQUEST, "create");
 
         return service.save(user);
     }
@@ -48,7 +47,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
 
-        log.info(EVENT_REQUEST, "delete");
+        log.info(USER_REQUEST, "delete");
 
         service.delete(id);
     }
