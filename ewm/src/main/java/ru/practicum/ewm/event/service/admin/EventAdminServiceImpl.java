@@ -24,9 +24,9 @@ import ru.practicum.stats.dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import static ru.practicum.ewm.event.enums.EventState.*;
 import static ru.practicum.ewm.util.EwmPatterns.URI;
@@ -211,14 +211,9 @@ public class EventAdminServiceImpl implements EventAdminService {
 
     private Map<Long, Long> getViewsMap(List<ViewStatsDto> stats) {
 
-        var map = new HashMap<Long, Long>();
-
-        for (var stat : stats) {
-
-            map.put(getEventIdFromStats(stat.getUri()), stat.getHits());
-        }
-
-        return map;
+        return stats.stream()
+                .collect(Collectors.toMap(viewStatsDto ->
+                        getEventIdFromStats(viewStatsDto.getUri()), ViewStatsDto::getHits));
     }
 
     private Long getEventIdFromStats(String uri) {

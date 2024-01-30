@@ -10,7 +10,6 @@ import ru.practicum.ewm.event.dto.EventFullDto;
 import ru.practicum.ewm.event.dto.EventShortDto;
 import ru.practicum.ewm.event.entity.Event;
 import ru.practicum.ewm.event.repository.EventRepository;
-import ru.practicum.ewm.request.dto.ConfirmedRequests;
 import ru.practicum.ewm.request.dto.ParticipationRequestDto;
 import ru.practicum.ewm.request.entity.Request;
 import ru.practicum.ewm.request.enums.RequestStatus;
@@ -18,7 +17,9 @@ import ru.practicum.ewm.request.mapper.RequestMapper;
 import ru.practicum.ewm.request.repository.RequestRepository;
 import ru.practicum.ewm.user.repository.UserRepository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -110,17 +111,39 @@ public class RequestServiceImpl implements RequestService {
     @Override
     public void setConfirmedRequestCountFull(List<EventFullDto> events) {
 
-        var confirmedRequests = repository.getConfirmedRequestsCount(getIdsFull(events));
+        var confirmedRequestsMap = getConfrimedRequestMap(getIdsFull(events));
 
-        events.forEach(event -> setRequestCount(event, confirmedRequests));
+        events.forEach(event -> event.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0L)));
+    }
+
+    private Map<Long, Long> getConfrimedRequestMap(List<Long> events) {
+
+        var confirmedRequests = repository.getConfirmedRequestsCount(events);
+
+        var confirmedRequestsMap = new HashMap<Long, Long>();
+
+        for (var confirmedRequest : confirmedRequests) {
+
+            if (confirmedRequestsMap.containsKey(confirmedRequest.getEventId()) ) {
+
+                var count = confirmedRequestsMap.get(confirmedRequest.getEventId());
+
+                confirmedRequestsMap.put(confirmedRequest.getEventId(), count + confirmedRequest.getRequestsCount());
+            } else {
+
+                confirmedRequestsMap.put(confirmedRequest.getEventId(), confirmedRequest.getRequestsCount());
+            }
+        }
+
+        return confirmedRequestsMap;
     }
 
     @Override
     public void setConfirmedRequestCountShort(List<EventShortDto> events) {
 
-        var confirmedRequests = repository.getConfirmedRequestsCount(getIdsShort(events));
+        var confirmedRequestsMap = getConfrimedRequestMap(getIdsShort(events));
 
-        events.forEach(event -> setRequestCount(event, confirmedRequests));
+        events.forEach(event -> event.setConfirmedRequests(confirmedRequestsMap.getOrDefault(event.getId(), 0L)));
     }
 
     private List<Long> getIdsFull(List<EventFullDto> events) {
@@ -131,35 +154,5 @@ public class RequestServiceImpl implements RequestService {
     private List<Long> getIdsShort(List<EventShortDto> events) {
 
         return events.stream().map(EventShortDto::getId).collect(Collectors.toList());
-    }
-
-    private void setRequestCount(EventFullDto event, List<ConfirmedRequests> requests) {
-
-        var requestCount = requests.stream()
-                .filter(s -> s.getEventId().equals(event.getId()))
-                .collect(Collectors.toList());
-
-        if (requestCount.isEmpty()) {
-
-            event.setConfirmedRequests(0L);
-        } else {
-
-            event.setConfirmedRequests(requestCount.get(0).getRequestsCount());
-        }
-    }
-
-    private void setRequestCount(EventShortDto event, List<ConfirmedRequests> requests) {
-
-        var requestCount = requests.stream()
-                .filter(s -> s.getEventId().equals(event.getId()))
-                .collect(Collectors.toList());
-
-        if (requestCount.isEmpty()) {
-
-            event.setConfirmedRequests(0L);
-        } else {
-
-            event.setConfirmedRequests(requestCount.get(0).getRequestsCount());
-        }
     }
 }
