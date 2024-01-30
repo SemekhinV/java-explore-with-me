@@ -124,7 +124,7 @@ public class RequestServiceImpl implements RequestService {
 
         for (var confirmedRequest : confirmedRequests) {
 
-            if (confirmedRequestsMap.containsKey(confirmedRequest.getEventId()) ) {
+            if (confirmedRequestsMap.containsKey(confirmedRequest.getEventId())) {
 
                 var count = confirmedRequestsMap.get(confirmedRequest.getEventId());
 
